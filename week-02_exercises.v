@@ -15,6 +15,11 @@
    Your student number: A0181001A
  *)
 
+(* Your name: Kuan Wei Heng
+   Your e-mail address: kuanwh@u.nus.edu
+   Your student number: TODO
+ *)
+
 (**
  %\title{Functional Programming in Coq}%
  %\author{Bobbie Soedirgo, Koo Zhengqun, Kuan Wei Heng}%
