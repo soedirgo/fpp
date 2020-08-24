@@ -154,48 +154,49 @@ Answer:
  *)
 
 Definition ta : forall A : Type, A -> A * A :=
-  fun A => fun a => (a, a).
+  fun _ a => (a, a).
 
 Definition tb : forall A B : Type, A -> B -> A * B :=
-  fun A => fun B => fun a => fun b => (a, b).
+  fun _ _ a b => (a, b).
 
 Definition tc : forall A B : Type, A -> B -> B * A :=
-  fun A => fun B => fun a => fun b => (b, a).
+  fun _ _ a b => (b, a).
 
 Check (tt : unit).
 
 Definition td : forall (A : Type), (unit -> A) -> A :=
-  fun A => fun f => f tt.
+  fun _ f => f tt.
 
 Definition te : forall A B : Type, (A -> B) -> A -> B :=
-  fun A => fun B => fun f => fun a => f a.
+  fun _ _ f a => f a.
 
 Definition tf : forall A B : Type, A -> (A -> B) -> B :=
-  fun A => fun B => fun a => fun f => f a.
+  fun _ _ a f => f a.
 
 Definition tg : forall A B C : Type, (A -> B -> C) -> A -> B -> C :=
-  fun A => fun B => fun C => fun f => fun a => fun b => f a b.
+  fun _ _ _ f a b => f a b.
 
 Definition th : forall A B C : Type, (A -> B -> C) -> B -> A -> C :=
-  fun A => fun B => fun C => fun f => fun b => fun a => f a b.
+  fun _ _ _ f b a => f a b.
 
 Definition ti : forall A B C D : Type, (A -> C) -> (B -> D) -> A -> B -> C * D :=
-  fun A => fun B => fun C => fun D => fun f => fun g => fun a => fun b => (f a, g b).
+  fun _ _ _ _ f g a b => (f a, g b).
 
 Definition tj : forall A B C : Type, (A -> B) -> (B -> C) -> A -> C :=
-  fun A => fun B => fun C => fun f => fun g => fun a => g (f a).
+  fun _ _ _ f g a => g (f a).
 
 Definition tk : forall A B : Type, A * B -> B * A :=
-  fun A => fun B => fun t => match t with | (a, b) => (b, a) end. (* Hint: use a match expression to destructure the input pair. *)
+  fun _ _ ab => match ab with (a, b) => (b, a) end.
 
 Definition tl : forall A B C : Type, (A * B -> C) -> A -> B -> C :=
-  fun A => fun B => fun C => fun f => fun a => fun b => f (a, b).
+  fun _ _ _ f a b => f (a, b).
 
 Definition tm : forall A B C : Type, (A -> B -> C) -> A * B -> C :=
-  fun A => fun B => fun C => fun f => fun t => match t with | (a, b) => f a b end.
+  fun _ _ _ f ab => match ab with (a, b) => f a b end.
 
+(* NOTE: Is (A * B) * C equivalent to A * B * C? *)
 Definition tn : forall A B C : Type, (A * (B * C)) -> (A * B) * C :=
-  fun A => fun B => fun C => fun t => match t with | (a, u) => match u with | (b, c) => ((a, b), c) end end.
+  fun _ _ _ a_bc => match a_bc with (a, (b, c)) => ((a, b), c) end.
 
 (* ********** *)
 
