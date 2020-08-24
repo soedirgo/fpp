@@ -1,7 +1,7 @@
 COQDOC = coqdoc --latex --short --table-of-contents
 PDFLATEX = pdflatex
 
-FILES =
+FILES = week-01_functional-programming-in-Coq
 
 # Substitution References
 VFILES = $(FILES:%=%.v)
