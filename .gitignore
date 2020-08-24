@@ -1,0 +1,15 @@
+# emacs
+*~
+\#*\#
+.\#*
+
+# coqdoc
+coqdoc.*
+
+# latex
+*.aux
+*.log
+*.out
+*.pdf
+*.toc
+*.tex

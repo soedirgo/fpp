@@ -1,0 +1,11 @@
+* [[https://delimited-continuation.github.io/YSC3236/2019-2020_Sem1/][Functional Programming and Proving (YSC3236)]]
+
+** Building
+   #+BEGIN_SRC
+   make
+   #+END_SRC
+
+** Cleaning
+   #+BEGIN_SRC
+   make clean
+   #+END_SRC
