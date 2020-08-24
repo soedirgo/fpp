@@ -347,6 +347,120 @@ Proof.
   exact (conj (conj H_A H_B) H_C).
 Qed.
 
+(** * Exercise 12
+Prove that disjunction distributes over conjunction on the left and right.
+
+ *)
+
+(** ** Distributes on the left: Given incomplete proof
+Prove that disjunction distributes over conjunction on the left.
+
+ *)
+
+Proposition disjunction_distributes_over_conjunction_on_the_left :
+  forall A B C : Prop,
+    A \/ (B /\ C) <-> (A \/ B) /\ (A \/ C).
+Proof.
+  intros A B C.
+  split.
+
+  - intros [H_A | [H_B H_C]].
+
+    + split.
+
+      * left.
+        exact H_A.
+
+      * left.
+        exact H_A.
+
+    + split.
+
+      * right.
+        exact H_B.
+
+      * right.
+        exact H_C.
+
+(** ** Distributes on the left: Completed proof
+Prove that disjunction distributes over conjunction on the left.
+
+ *)
+
+  - intros [[H_A | H_B] [H_A' | H_C]].
+    + left. exact H_A.
+    + left. exact H_A.
+    + left. exact H_A'.
+    + right.
+      exact (conj H_B H_C).
+Qed.
+
+(** ** Distributes on the right
+Prove that disjunction distributes over conjunction on the right.
+
+ *)
+
+Proposition disjunction_distributes_over_conjunction_on_the_right :
+  forall A B C : Prop,
+    (B /\ C) \/ A <-> (B \/ A) /\ (C \/ A).
+Proof.
+  intros A B C.
+  split.
+  - intros [[H_B H_C] | H_A].
+    + split.
+      * left. exact H_B.
+      * left. exact H_C.
+    + split.
+      * right. exact H_A.
+      * right. exact H_A.
+  - intros [[H_B | H_A] [H_C | H_A']].
+    + left. exact (conj H_B H_C).
+    + right. exact H_A'.
+    + right. exact H_A.
+    + right. exact H_A.
+Qed.
+
+(** * Exercise 13
+Prove that conjunction distributes over disjunction on the left and on the right.
+
+ *)
+
+Proposition conjunction_distributes_over_disjunction_on_the_left :
+  forall A B C : Prop,
+    A /\ (B \/ C) <-> (A /\ B) \/ (A /\ C).
+Proof.
+  intros A B C.
+  split.
+  - intros [H_A [H_B | H_C]].
+    + left. exact (conj H_A H_B).
+    + right. exact (conj H_A H_C).
+  - intros [[H_A H_B] | [H_A H_C]].
+    + split.
+      * exact H_A.
+      * left. exact H_B.
+    + split.
+      * exact H_A.
+      * right. exact H_C.
+Qed.
+
+Proposition conjunction_distributes_over_disjunction_on_the_right :
+  forall A B C : Prop,
+    (A \/ B) /\ C <-> (A /\ C) \/ (B /\ C).
+Proof.
+  intros A B C.
+  split.
+  - intros [[H_A | H_B] H_C].
+    + left. exact (conj H_A H_C).
+    + right. exact (conj H_B H_C).
+  - intros [[H_A H_C] | [H_B H_C']].
+    + split.
+      * left. exact H_A.
+      * exact H_C.
+    + split.
+      * right. exact H_B.
+      * exact H_C'.
+Qed.
+
 (* ********** *)
 
 (** * Conclusion
