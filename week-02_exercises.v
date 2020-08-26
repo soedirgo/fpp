@@ -35,7 +35,7 @@ This assignment first introduces polymorphic datatypes, terms of those polymorph
 
 Then, this assignment introduces polymorphic lambda types, and terms of those polymorphic lambda types.
 
-Then, this assignment introduces polymorphic propositions, and proofs of those polymorphic propositions,
+Then, this assignment introduces polymorphic propositions, and proofs of those polymorphic propositions.
 
 The sheer number of types and proofs in this assignment is significant, since they help students internalize Coq's and Gallina's syntax.
 
@@ -82,7 +82,7 @@ Definition eqb_binary_tree_of_nats (t1 t2 : polymorphic_binary_tree nat) : bool 
 (* end hide *)
 
 (** ** a
-Exhibit a Gallina expression of type polymorphic_binary_tree (nat * bool).
+Exhibit a Gallina expression of type [polymorphic_binary_tree (nat * bool)].
 
 Answer:
 
@@ -96,7 +96,7 @@ Check (tree_nat_bool : polymorphic_binary_tree (nat * bool)).
 (* end hide *)
 
 (** ** b
-Exhibit a Gallina expression of type polymorphic_binary_tree (polymorphic_binary_tree nat).
+Exhibit a Gallina expression of type [polymorphic_binary_tree (polymorphic_binary_tree nat)].
 
 Answer:
 
