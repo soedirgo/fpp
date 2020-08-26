@@ -84,7 +84,7 @@ let () = assert (test_concat yip);;
 
 (* Bonus: Reverse list, but with yip *)
 let quux vs =
-  infinite_self_composition (fun quux vs -> match vs with | [] -> [] | v :: vs' -> quux (yip vs' [v])) vs;;
+  infinite_self_composition (fun quux vs -> match vs with | [] -> [] | v :: vs' -> yip (quux vs') [v]) vs;;
 
 let () = assert (test_rev quux);;
 

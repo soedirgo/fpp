@@ -455,7 +455,7 @@ let quux vs =
   infinite_self_composition (fun quux vs ->
     match vs with
     | [] -> []
-    | v :: vs' -> quux (yip vs' [v])
+    | v :: vs' -> yip (quux vs') [v]
     ) vs;;
 
 let () = assert (test_rev quux);;
