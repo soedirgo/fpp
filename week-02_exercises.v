@@ -114,25 +114,22 @@ Check (tree_tree_nat : polymorphic_binary_tree (polymorphic_binary_tree nat)).
 (** * Exercise 2 *)
 
 (** ** a
-Implement a function that tests the structural equality of binary trees of pairs of natural numbers and booleans.
+To implement an equality function on binary trees of pairs of nats and bools, we can specialize the polymorphic function
+[eqb_polymorphic_binary_tree]. This requires us to produce a witness function to test the equality of pairs of nats and bools.
+Instead of constructing it directly, we will first write a more general form to test the equality of pairs
+parameterized over the types of the car and cdr, then specialize it for [nat * bool] with the witnesses [beq_a] and [beq_b].
+ *)
 
-Answer:
-
-*)
-
-Definition beq_nat_bool (p1 p2 : nat * bool) : bool :=
+Definition beq_pair (A B : Type) (beq_a : A -> A -> bool) (beq_b : B -> B -> bool) (p1 p2 : A * B) : bool :=
   let (n1, b1) := p1 in
   let (n2, b2) := p2 in
-  beq_nat n1 n2 && eqb b1 b2.
+  beq_a n1 n2 && beq_b b1 b2.
 
 Definition eqb_binary_tree_of_nats_and_bools (t1 t2 : polymorphic_binary_tree (nat * bool)) : bool :=
-  eqb_polymorphic_binary_tree (nat * bool) beq_nat_bool t1 t2.
+  eqb_polymorphic_binary_tree (nat * bool) (beq_pair nat bool beq_nat eqb) t1 t2.
 
 (** ** b
-Implement a function that tests the structural equality of binary trees of binary trees of natural numbers.
-
-Answer:
-
+For binary trees of binary trees of natural numbers, no new definition is needed to construct the witness function.
  *)
 
 Definition eqb_binary_tree_of_binary_trees_of_nats (t1 t2 : polymorphic_binary_tree (polymorphic_binary_tree nat)) : bool :=
