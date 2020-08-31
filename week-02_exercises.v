@@ -146,6 +146,10 @@ e ::= tt | x | fun x => e | e e | (e, e) | match e with p => e
 p ::= x | (p, p)
 >>
 
+Because types are never directly used to construct the program, for each type, we <<intro>> it but do not bind it to an identifier (we bind it to [_], which means we ignore it).
+
+These exercises about types have a great similarity to the exercises about propositions. In fact, each of these numbered exercises (from [a] to [n]) correspond to the corresponding numbered exercises about propositions (from [a] to [n]). This allows us to apply insights from these exercises to the exercises about propositions, and vice versa. So let us start with the insights from these exercises.
+
 Answer:
 
  *)
@@ -170,8 +174,17 @@ Definition te : forall A B : Type, (A -> B) -> A -> B :=
 Definition tf : forall A B : Type, A -> (A -> B) -> B :=
   fun _ _ a f => f a.
 
+(**
+We note that [tg] is [fun _ _ _ f a b => f a b]. From lambda calculus, we know that this is eta-equivalent to [fun _ _ _ f => f]. So, we know that [pg] can be proven by doing 4 <<intro>>s, then doing <<exact>> on the 4th <<intro>>ed term.
+
+*)
 Definition tg : forall A B C : Type, (A -> B -> C) -> A -> B -> C :=
   fun _ _ _ f a b => f a b.
+
+(**
+Keeping in mind that [->] associates to the right, we note when compared to [tg : (A -> B -> C) -> (A -> B -> C)], that the exercise [th : (A -> B -> C) -> (B -> A -> C)] is significant, because [th] tells us that despite what the type [(B -> A -> C)] says, we do not need to apply [B] first followed by [A]. This is especially evident in the way the terms are constructed: both [tg] and [th] construct the term as [f a b]. We shall see a more fundamental reason in the exercises about propositoins.
+
+*)
 
 Definition th : forall A B C : Type, (A -> B -> C) -> B -> A -> C :=
   fun _ _ _ f b a => f a b.
@@ -209,6 +222,8 @@ split
 exact
 apply
 >>
+
+Here, we write insights from these exercises that can be applied to the exercises about types.
 
 Answer:
 
@@ -270,12 +285,24 @@ Proof.
   exact (H_f H_A).
 Qed.
 
+(**
+In proving [pg], we apply the insight of eta-conversion to get a proof that uses less tactics (the <<intros>> tactic is counted as many <<intro>>s).
+
+We note that it is possible to prove both [pg] and [ph] by using the <<intro>> tactic as many times as possible. Then, we note that the hypotheses of [pg] are exactly the same as the hypotheses of [ph] (up to bounded names). This strongly suggests that the two propositions are equivalent. Indeed, we notice that each use of the <<intro>> tactic, to introduce a term as a hypothesis, eliminates the left side of only one implication. This corresponds to partial application of the type function of some arity, whereby the aforementioned introduced term is fixed, producing a type function with smaller arity.
+
+ *)
+
 Proposition pg :
   forall A B C : Prop,
     (A -> B -> C) -> A -> B -> C.
 Proof.
   intros A B C H_f H_A H_B.
   exact (H_f H_A H_B).
+
+  Restart.
+
+  intros A B C H_f.
+  exact H_f.
 Qed.
 
 Proposition ph :
