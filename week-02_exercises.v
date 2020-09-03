@@ -610,7 +610,56 @@ By the Curry-Howard correspondence, proofs are terms, and propositions are types
 
 Polymorphism is a significant constraint in this assignment. Because of polymorphism, a term cannot know which of the possible types it is building up to, as in %\href{http://ecee.colorado.edu/ecen5533/fall11/reading/free.pdf}{Wadler}%.
 
-Only a small amount of term-building operators can be used to inhabit a type, and correspondingly, only a small amount of Coq tactics can be used to inhabit a type (i.e. there are no excessive [apply] tactics).
+Concretely, there is only one solution to exercise [tk]. But if one considers integer-specific types, then alternative solutions are allowed, such as this:
+
+ *)
+
+(* begin hide *)
+Require Import BinInt.
+Include BinIntDef.Z.
+(* end hide *)
+
+Definition tk_int (p : Z * Z) : (Z * Z) :=
+  match p with (a, b) =>
+               let a := Z.sub b a in
+               let b := Z.sub b a in
+               let a := Z.add a b in
+               (a, b)
+  end.
+
+(**
+We can write unit tests after defining equality on pairs of integers.
+
+ *)
+
+Definition beq_int_pair (p q : Z * Z) : bool :=
+  match p with (a, b) =>
+               match q with (c, d) =>
+                            eqb a c && eqb b d
+               end
+  end.
+
+Notation "A =zp= B" :=
+  (beq_int_pair A B) (at level 70, right associativity).
+
+Definition test_tk (candidate : (Z * Z) -> (Z * Z)) : bool :=
+  ((candidate (Z0,succ Z0)) =zp= (succ Z0,Z0)) &&
+  ((candidate (succ Z0,Z0)) =zp= (Z0,succ Z0)) &&
+  ((candidate (Z0,succ (succ Z0))) =zp= (succ (succ Z0),Z0)) &&
+  ((candidate (succ (succ Z0),Z0)) =zp= (Z0,succ (succ Z0))).
+
+(**
+Both the polymorphic [tk] and non-polymorphic [tk_int] pass the unit tests.
+
+ *)
+
+Compute test_tk (tk Z Z).
+Compute test_tk tk_int.
+
+(**
+As we have seen, only a small amount of term-building operators can be used to manipulate terms that belong to a polymorphic type, because polymorphic types contain less information. For example, we cannot construct [tk] with [tk_int], because the polymorphic type may not be of type int. We do not know which type the polymorphic type is.
+
+Correspondingly, only a small amount of Coq tactics can be used to construct a proof that has only polymorphic types in its assumption.
 
  *)
 
