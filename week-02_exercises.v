@@ -608,7 +608,8 @@ Qed.
 (** * Conclusion
 By the Curry-Howard correspondence, proofs are terms, and propositions are types.
 
-Polymorphism is a significant constraint in this assignment. Because of polymorphism, a term cannot know which of the possible types it is building up to, as in %\href{http://ecee.colorado.edu/ecen5533/fall11/reading/free.pdf}{Wadler}%.
+Polymorphism is a significant constraint in this assignment. Because of polymorphism, a term cannot know which of the possible types it is building up to, as in %\href{http://ecee.colorado.edu/ecen5533/fall11/reading/free.pdf}{Wadler}%, which says:
+"Say that [r] is a function of type $r : \forall X. X^* \rightarrow X^*$. Here [X] is a type variable, and $X^*$ is the type “list of [X]”. [r] must work on lists of [X] for any type [X]. Since [r] is provided with no operations on values of type [X], all it can do is rearrange such lists, independent of the values contained in them."
 
 Concretely, there is only one solution to exercise [tk]. But if one considers integer-specific types, then alternative solutions are allowed, such as this:
 
