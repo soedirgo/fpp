@@ -114,25 +114,22 @@ Check (tree_tree_nat : polymorphic_binary_tree (polymorphic_binary_tree nat)).
 (** * Exercise 2 *)
 
 (** ** a
-Implement a function that tests the structural equality of binary trees of pairs of natural numbers and booleans.
+To implement an equality function on binary trees of pairs of nats and bools, we can specialize the polymorphic function
+[eqb_polymorphic_binary_tree]. This requires us to produce a witness function to test the equality of pairs of nats and bools.
+Instead of constructing it directly, we will first write a more general form to test the equality of pairs
+parameterized over the types of the car and cdr, then specialize it for [nat * bool] with the witnesses [beq_a] and [beq_b].
+ *)
 
-Answer:
-
-*)
-
-Definition beq_nat_bool (p1 p2 : nat * bool) : bool :=
+Definition beq_pair (A B : Type) (beq_a : A -> A -> bool) (beq_b : B -> B -> bool) (p1 p2 : A * B) : bool :=
   let (n1, b1) := p1 in
   let (n2, b2) := p2 in
-  beq_nat n1 n2 && eqb b1 b2.
+  beq_a n1 n2 && beq_b b1 b2.
 
 Definition eqb_binary_tree_of_nats_and_bools (t1 t2 : polymorphic_binary_tree (nat * bool)) : bool :=
-  eqb_polymorphic_binary_tree (nat * bool) beq_nat_bool t1 t2.
+  eqb_polymorphic_binary_tree (nat * bool) (beq_pair nat bool beq_nat eqb) t1 t2.
 
 (** ** b
-Implement a function that tests the structural equality of binary trees of binary trees of natural numbers.
-
-Answer:
-
+For binary trees of binary trees of natural numbers, no new definition is needed to construct the witness function.
  *)
 
 Definition eqb_binary_tree_of_binary_trees_of_nats (t1 t2 : polymorphic_binary_tree (polymorphic_binary_tree nat)) : bool :=
@@ -148,6 +145,10 @@ Hint: all these programs only need to have the shape <<(fun ... => e)>>, where:
 e ::= tt | x | fun x => e | e e | (e, e) | match e with p => e
 p ::= x | (p, p)
 >>
+
+Because types are never directly used to construct the program, for each type, we <<intro>> it but do not bind it to an identifier (we bind it to [_], which means we ignore it).
+
+These exercises about types have a great similarity to the exercises about propositions. In fact, each of these numbered exercises (from [a] to [n]) correspond to the corresponding numbered exercises about propositions (from [a] to [n]). This allows us to apply insights from these exercises to the exercises about propositions, and vice versa. So let us start with the insights from these exercises.
 
 Answer:
 
@@ -173,8 +174,17 @@ Definition te : forall A B : Type, (A -> B) -> A -> B :=
 Definition tf : forall A B : Type, A -> (A -> B) -> B :=
   fun _ _ a f => f a.
 
+(**
+We note that [tg] is [fun _ _ _ f a b => f a b]. From lambda calculus, we know that this is eta-equivalent to [fun _ _ _ f => f]. So, we know that [pg] can be proven by doing 4 <<intro>>s, then doing <<exact>> on the 4th <<intro>>ed term.
+
+*)
 Definition tg : forall A B C : Type, (A -> B -> C) -> A -> B -> C :=
   fun _ _ _ f a b => f a b.
+
+(**
+Keeping in mind that [->] associates to the right, we note when compared to [tg : (A -> B -> C) -> (A -> B -> C)], that the exercise [th : (A -> B -> C) -> (B -> A -> C)] is significant, because [th] tells us that despite what the type [(B -> A -> C)] says, we do not need to apply [B] first followed by [A]. This is especially evident in the way the terms are constructed: both [tg] and [th] construct the term as [f a b]. We shall see a more fundamental reason in the exercises about propositoins.
+
+*)
 
 Definition th : forall A B C : Type, (A -> B -> C) -> B -> A -> C :=
   fun _ _ _ f b a => f a b.
@@ -212,6 +222,8 @@ split
 exact
 apply
 >>
+
+Here, we write insights from these exercises that can be applied to the exercises about types.
 
 Answer:
 
@@ -273,12 +285,24 @@ Proof.
   exact (H_f H_A).
 Qed.
 
+(**
+In proving [pg], we apply the insight of eta-conversion to get a proof that uses less tactics (the <<intros>> tactic is counted as many <<intro>>s).
+
+We note that it is possible to prove both [pg] and [ph] by using the <<intro>> tactic as many times as possible. Then, we note that the hypotheses of [pg] are exactly the same as the hypotheses of [ph] (up to bounded names). This strongly suggests that the two propositions are equivalent. Indeed, we notice that each use of the <<intro>> tactic, to introduce a term as a hypothesis, eliminates the left side of only one implication. This corresponds to partial application of the type function of some arity, whereby the aforementioned introduced term is fixed, producing a type function with smaller arity.
+
+ *)
+
 Proposition pg :
   forall A B C : Prop,
     (A -> B -> C) -> A -> B -> C.
 Proof.
   intros A B C H_f H_A H_B.
   exact (H_f H_A H_B).
+
+  Restart.
+
+  intros A B C H_f.
+  exact H_f.
 Qed.
 
 Proposition ph :
@@ -584,9 +608,59 @@ Qed.
 (** * Conclusion
 By the Curry-Howard correspondence, proofs are terms, and propositions are types.
 
-Polymorphism is a significant constraint in this assignment. Because of polymorphism, a term cannot know which of the possible types it is building up to, as in %\href{http://ecee.colorado.edu/ecen5533/fall11/reading/free.pdf}{Wadler}%.
+Polymorphism is a significant constraint in this assignment. Because of polymorphism, a term cannot know which of the possible types it is building up to, as in %\href{http://ecee.colorado.edu/ecen5533/fall11/reading/free.pdf}{Wadler}%, which says:
+"Say that [r] is a function of type $r : \forall X. X^* \rightarrow X^*$. Here [X] is a type variable, and $X^*$ is the type “list of [X]”. [r] must work on lists of [X] for any type [X]. Since [r] is provided with no operations on values of type [X], all it can do is rearrange such lists, independent of the values contained in them."
 
-Only a small amount of term-building operators can be used to inhabit a type, and correspondingly, only a small amount of Coq tactics can be used to inhabit a type (i.e. there are no excessive [apply] tactics).
+Concretely, there is only one solution to exercise [tk]. But if one considers integer-specific types, then alternative solutions are allowed, such as this:
+
+ *)
+
+(* begin hide *)
+Require Import BinInt.
+Include BinIntDef.Z.
+(* end hide *)
+
+Definition tk_int (p : Z * Z) : (Z * Z) :=
+  match p with (a, b) =>
+               let a := Z.sub b a in
+               let b := Z.sub b a in
+               let a := Z.add a b in
+               (a, b)
+  end.
+
+(**
+We can write unit tests after defining equality on pairs of integers.
+
+ *)
+
+Definition beq_int_pair (p q : Z * Z) : bool :=
+  match p with (a, b) =>
+               match q with (c, d) =>
+                            eqb a c && eqb b d
+               end
+  end.
+
+Notation "A =zp= B" :=
+  (beq_int_pair A B) (at level 70, right associativity).
+
+Definition test_tk (candidate : (Z * Z) -> (Z * Z)) : bool :=
+  ((candidate (Z0,succ Z0)) =zp= (succ Z0,Z0)) &&
+  ((candidate (succ Z0,Z0)) =zp= (Z0,succ Z0)) &&
+  ((candidate (Z0,succ (succ Z0))) =zp= (succ (succ Z0),Z0)) &&
+  ((candidate (succ (succ Z0),Z0)) =zp= (Z0,succ (succ Z0))).
+
+(**
+Both the polymorphic [tk] and non-polymorphic [tk_int] pass the unit tests.
+
+ *)
+
+Compute test_tk (tk Z Z).
+Compute test_tk tk_int.
+
+(**
+As we have seen, only a small amount of term-building operators can be used to manipulate terms that belong to a polymorphic type, because polymorphic types contain less information. For example, we cannot construct [tk] with [tk_int], because the polymorphic type may not be of type int. We do not know which type the polymorphic type is.
+
+Correspondingly, only a small amount of Coq tactics can be used to construct a proof that has only polymorphic types in its assumption.
 
  *)
 
