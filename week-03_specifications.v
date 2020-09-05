@@ -412,6 +412,46 @@ Proof.
       exact (plus_Sn_m x' y).
 Qed.
 
+(* TODO: Remarks *)
+
+Theorem the_two_specifications_of_addition_are_equivalent'' :
+  forall add : nat -> nat -> nat,
+    recursive_specification_of_addition add <-> tail_recursive_specification_of_addition add.
+Proof.
+  intros add.
+  unfold recursive_specification_of_addition.
+  unfold tail_recursive_specification_of_addition.
+  split.
+  - intros [H_recursive_specification_of_addition_O H_recursive_specification_of_addition_S].
+    split.
+    + exact H_recursive_specification_of_addition_O.
+    + induction x' as [ | x'' IHx''].
+      * intros y.
+        rewrite -> (H_recursive_specification_of_addition_S O y).
+        rewrite -> (H_recursive_specification_of_addition_O y).
+        rewrite -> (H_recursive_specification_of_addition_O (S y)).
+        reflexivity.
+      * intros y.
+        rewrite -> (H_recursive_specification_of_addition_S x'' (S y)).
+        rewrite -> (H_recursive_specification_of_addition_S (S x'') y).
+        rewrite -> (IHx'' y).
+        reflexivity.
+  - intros [H_tail_recursive_specification_of_addition_O H_tail_recursive_specification_of_addition_S].
+    split.
+    + exact H_tail_recursive_specification_of_addition_O.
+    + induction x' as [ | x'' IHx''].
+      * intros y.
+        rewrite -> (H_tail_recursive_specification_of_addition_S O y).
+        rewrite -> (H_tail_recursive_specification_of_addition_O y).
+        rewrite -> (H_tail_recursive_specification_of_addition_O (S y)).
+        reflexivity.
+      * intros y.
+        rewrite -> (H_tail_recursive_specification_of_addition_S x'' y).
+        rewrite -> (H_tail_recursive_specification_of_addition_S (S x'') y).
+        rewrite -> (IHx'' (S y)).
+        reflexivity.
+Qed.
+
 (* ********** *)
 
 Theorem associativity_of_recursive_addition_ :
