@@ -71,15 +71,14 @@ Proof.
   unfold tail_recursive_specification_of_addition.
   intros [H_add1_O H_add1_S] [H_add2_O H_add2_S].
   intros x.
-  induction x as [|x' IH].
+  induction x as [|x' IHx'].
   - intros y.
-    rewrite -> (H_add1_O y).
     rewrite -> (H_add2_O y).
-    reflexivity.
+    apply (H_add1_O y).
   - intros y.
     rewrite -> (H_add1_S x' y).
     rewrite -> (H_add2_S x' y).
-    exact (IH (S y)).
+    exact (IHx' (S y)).
 Qed.
 
 (* ********** *)
@@ -470,7 +469,7 @@ Qed.
 (* ********** *)
 
 Theorem associativity_of_recursive_addition_ :
-  forall add : nat -> add -> nat,
+  forall add : nat -> nat -> nat,
     recursive_specification_of_addition add ->
     forall n1 n2 n3 : nat,
       add n1 (add n2 n3) = add (add n1 n2) n3.
@@ -480,7 +479,7 @@ Abort.
 (* ********** *)
 
 Theorem commutativity_of_recursive_addition :
-  forall add : nat -> add -> nat,
+  forall add : nat -> nat -> nat,
     recursive_specification_of_addition add ->
     forall n1 n2 : nat,
       add n1 n2 = add n2 n1.
@@ -490,7 +489,7 @@ Abort.
 (* ********** *)
 
 Theorem O_is_left_neutral_for_recursive_addition :
-  forall add : nat -> add -> nat,
+  forall add : nat -> nat -> nat,
     recursive_specification_of_addition add ->
     forall n : nat,
       add 0 n = n.
@@ -500,7 +499,7 @@ Abort.
 (* ********** *)
 
 Theorem O_is_right_neutral_for_recursive_addition :
-  forall add : nat -> add -> nat,
+  forall add : nat -> nat -> nat,
     recursive_specification_of_addition add ->
     forall n : nat,
       add n 0 = n.
