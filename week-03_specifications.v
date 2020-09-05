@@ -5,6 +5,37 @@
 
 (* ********** *)
 
+(* Your name: Koo Zhengqun
+   Your e-mail address: zhengqun.koo@u.nus.edu
+   Your student number: A0164207L
+ *)
+
+(* Your name: Bobbie Soedirgo
+   Your e-mail address: sram-b@comp.nus.edu.sg
+   Your student number: A0181001A
+ *)
+
+(* Your name: Kuan Wei Heng
+   Your e-mail address: kuanwh@u.nus.edu
+   Your student number: A0121712X
+ *)
+
+(**
+ %\title{Functional Programming in Coq}%
+ %\author{Bobbie Soedirgo, Koo Zhengqun, Kuan Wei Heng}%
+ %\date{\today}%
+ %\maketitle%
+ %\tableofcontents%
+ %\newpage%
+ *)
+
+(** * Introduction
+
+
+%\newpage%
+ *)
+
+(* begin hide *)
 (* Paraphernalia: *)
 
 Require Import Arith.
