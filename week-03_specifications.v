@@ -518,15 +518,106 @@ Qed.
 
 (* ********** *)
 
-Theorem associativity_of_recursive_addition_ :
+(* Exercise 6 *)
+
+(** This one is proven using routine induction on n1.
+ *)
+Theorem associativity_of_recursive_addition :
   forall add : nat -> nat -> nat,
     recursive_specification_of_addition add ->
     forall n1 n2 n3 : nat,
       add n1 (add n2 n3) = add (add n1 n2) n3.
 Proof.
-Abort.
+  intro add.
+  unfold recursive_specification_of_addition.
+  intros [H_rec_O H_rec_S].
+  induction n1 as [|n1' IHn1'].
+  - intros n2 n3.
+    rewrite -> (H_rec_O (add n2 n3)).
+    rewrite -> (H_rec_O n2).
+    reflexivity.
+  - intros n2 n3.
+    rewrite -> (H_rec_S n1' (add n2 n3)).
+    rewrite -> (H_rec_S n1' n2).
+    rewrite -> (H_rec_S (add n1' n2) n3).
+    rewrite -> (IHn1' n2 n3).
+    reflexivity.
+Qed.
+
+(** As with Exercise 5, we can also use the theorem that all functions satisfying the recursive specification for addition is equivalent to [Nat.add]. This lets us omit the induction on n1:
+ *)
+Theorem associativity_of_recursive_addition' :
+  forall add : nat -> nat -> nat,
+    recursive_specification_of_addition add ->
+    forall n1 n2 n3 : nat,
+      add n1 (add n2 n3) = add (add n1 n2) n3.
+Proof.
+  intro add.
+  unfold recursive_specification_of_addition.
+  intros [H_rec_O H_rec_S].
+  intros n1 n2 n3.
+  Check (rec_add_is_equiv_to_resident_add add (conj H_rec_O H_rec_S) n1 n2).
+  rewrite -> (rec_add_is_equiv_to_resident_add add (conj H_rec_O H_rec_S) n1 n2).
+  rewrite -> (rec_add_is_equiv_to_resident_add add (conj H_rec_O H_rec_S) n2 n3).
+  rewrite -> (rec_add_is_equiv_to_resident_add add (conj H_rec_O H_rec_S) n1 (n2 + n3)).
+  rewrite -> (rec_add_is_equiv_to_resident_add add (conj H_rec_O H_rec_S) (n1 + n2) n3).
+  Search (_ + (_ + _) = _).
+  exact (Nat.add_assoc n1 n2 n3).
+Qed.
+
+(** We can prove this using the same steps as part a, or we can use the fact that both specifications for addition are equivalent to save us some work:
+ *)
+Theorem associativity_of_tail_recursive_addition :
+  forall add : nat -> nat -> nat,
+    tail_recursive_specification_of_addition add ->
+    forall n1 n2 n3 : nat,
+      add n1 (add n2 n3) = add (add n1 n2) n3.
+Proof.
+  intros add S_add.
+  apply (the_two_specifications_of_addition_are_equivalent add) in S_add.
+  apply (associativity_of_recursive_addition add S_add).
+Qed.
 
 (* ********** *)
+
+(* Exercise 7 (used for Exercise 8) *)
+
+Lemma commutativity_of_recursive_addition_O :
+  forall add : nat -> nat -> nat,
+    recursive_specification_of_addition add ->
+    forall n : nat,
+      add n O = n.
+Proof.
+  intro add.
+  unfold recursive_specification_of_addition.
+  intros [H_rec_O H_rec_S].
+  induction n as [| n' IHn'].
+  - exact (H_rec_O 0).
+  - rewrite -> (H_rec_S n' 0).
+    rewrite -> IHn'.
+    reflexivity.
+Qed.
+
+Lemma commutativity_of_recursive_addition_S :
+  forall add : nat -> nat -> nat,
+    recursive_specification_of_addition add ->
+    forall n1 n2 : nat,
+      add n1 (S n2) = S (add n1 n2).
+Proof.
+  intro add.
+  unfold recursive_specification_of_addition.
+  intros [H_rec_O H_rec_S].
+  induction n1 as [| n1' IHn1'].
+  - intro n2.
+    rewrite -> (H_rec_O (S n2)).
+    rewrite -> (H_rec_O n2).
+    reflexivity.
+  - intro n2.
+    rewrite -> (H_rec_S n1' (S n2)).
+    rewrite -> (IHn1' n2).
+    rewrite -> (H_rec_S n1' n2).
+    reflexivity.
+Qed.
 
 Theorem commutativity_of_recursive_addition :
   forall add : nat -> nat -> nat,
@@ -534,27 +625,81 @@ Theorem commutativity_of_recursive_addition :
     forall n1 n2 : nat,
       add n1 n2 = add n2 n1.
 Proof.
-Abort.
+  intros add S_add.
+  assert (H_add_O := commutativity_of_recursive_addition_O add S_add).
+  assert (H_add_S := commutativity_of_recursive_addition_S add S_add).
+  unfold recursive_specification_of_addition in S_add.
+  destruct S_add as [S_add_O S_add_S].
+  induction n1 as [| n1' IHn1'].
+  - intro n2.
+    rewrite -> (S_add_O n2).
+    rewrite -> (H_add_O n2).
+    reflexivity.
+  - intro n2.
+    rewrite -> (S_add_S n1' n2).
+    rewrite -> (H_add_S n2 n1').
+    rewrite -> (IHn1' n2).
+    reflexivity.
+Qed.
 
 (* ********** *)
 
+(* Exercise 8 *)
+
+(** This part is trivial to prove:
+ *)
 Theorem O_is_left_neutral_for_recursive_addition :
   forall add : nat -> nat -> nat,
     recursive_specification_of_addition add ->
     forall n : nat,
       add 0 n = n.
 Proof.
-Abort.
+  intro add.
+  unfold recursive_specification_of_addition.
+  intros [S_add_O S_add_S].
+  intro n.
+  exact (S_add_O n).
+Qed.
 
 (* ********** *)
 
+(** This part is trickier. We can prove it by induction (which is boring), or we can use the fact that addition is commutative, which we've just proven in Exercise 7:
+ *)
 Theorem O_is_right_neutral_for_recursive_addition :
   forall add : nat -> nat -> nat,
     recursive_specification_of_addition add ->
     forall n : nat,
       add n 0 = n.
 Proof.
-Abort.
+  intros add S_add.
+  intro n.
+  rewrite -> (commutativity_of_recursive_addition add S_add n 0).
+  exact (O_is_left_neutral_for_recursive_addition add S_add n).
+Qed.
+
+(** Again, we can prove the tail recursive counterpart with as with part a, or we can use previously proven theorems:
+ *)
+Theorem O_is_left_neutral_for_tail_recursive_addition :
+  forall add : nat -> nat -> nat,
+    tail_recursive_specification_of_addition add ->
+    forall n : nat,
+      add 0 n = n.
+Proof.
+  intros add S_add.
+  apply (the_two_specifications_of_addition_are_equivalent add) in S_add.
+  apply (O_is_left_neutral_for_recursive_addition add S_add).
+Qed.
+
+Theorem O_is_right_neutral_for_tail_recursive_addition :
+  forall add : nat -> nat -> nat,
+    tail_recursive_specification_of_addition add ->
+    forall n : nat,
+      add n 0 = n.
+Proof.
+  intros add S_add.
+  apply (the_two_specifications_of_addition_are_equivalent add) in S_add.
+  apply (O_is_right_neutral_for_recursive_addition add S_add).
+Qed.
 
 (* ********** *)
 
