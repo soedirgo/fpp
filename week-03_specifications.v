@@ -359,6 +359,59 @@ Proof.
        * exact (H x' y).
 Qed.
 
+(* TODO: Remarks *)
+
+Lemma rec_add_aux :
+  forall add : nat -> nat -> nat,
+    recursive_specification_of_addition add ->
+    forall x y : nat,
+      add x y = Nat.add x y.
+Proof.
+  intros add H_add.
+  apply there_is_at_most_one_recursive_addition.
+  - exact H_add.
+  - apply the_resident_addition_function_satisfies_the_recursive_specification_of_addition.
+Qed.
+
+Lemma tail_rec_add_aux :
+  forall add : nat -> nat -> nat,
+    tail_recursive_specification_of_addition add ->
+    forall x y : nat,
+      add x y = Nat.add x y.
+Proof.
+  intros add H_add.
+  apply there_is_at_most_one_tail_recursive_addition.
+  - exact H_add.
+  - apply the_resident_addition_function_satisfies_the_tail_recursive_specification_of_addition.
+Qed.
+
+Theorem the_two_specifications_of_addition_are_equivalent' :
+  forall add : nat -> nat -> nat,
+    recursive_specification_of_addition add <-> tail_recursive_specification_of_addition add.
+Proof.
+  intro add.
+  unfold recursive_specification_of_addition.
+  unfold tail_recursive_specification_of_addition.
+  split.
+  - intros [H_rec_O H_rec_S].
+    split.
+    + exact H_rec_O.
+    + intros x' y.
+      Check (rec_add_aux add (conj H_rec_O H_rec_S) (S x') y).
+      rewrite -> (rec_add_aux add (conj H_rec_O H_rec_S) (S x') y).
+      rewrite -> (rec_add_aux add (conj H_rec_O H_rec_S) x' (S y)).
+      exact (plus_Snm_nSm x' y).
+  - intros [H_tail_rec_O H_tail_rec_S].
+    split.
+    + exact H_tail_rec_O.
+    + intros x' y.
+      Check (tail_rec_add_aux add (conj H_tail_rec_O H_tail_rec_S)).
+      rewrite -> (tail_rec_add_aux add (conj H_tail_rec_O H_tail_rec_S) (S x') y).
+      rewrite -> (tail_rec_add_aux add (conj H_tail_rec_O H_tail_rec_S) x' y).
+      Search (S _ + _ = _).
+      exact (plus_Sn_m x' y).
+Qed.
+
 (* ********** *)
 
 Theorem associativity_of_recursive_addition_ :
