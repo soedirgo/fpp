@@ -343,8 +343,6 @@ Qed.
 (** ** Solution 1 *)
 
 (**
-Here, we give a proof of [the_two_specifications_of_addition_are_equivalent] which only uses rewriting of the given hypotheses, and inductive hypotheses, with no appeal to the theorems of the resident addition function [Nat.add].
-
 Since the resident addition function [Nat.add] satisfies both specifications, it is
 reasonable to believe that the specifications are equivalent
 (though we do not know for sure until we prove it).
@@ -352,6 +350,8 @@ To prove this, we
 need to show that the definitions have the same "expressive power", which means we
 can take the assertions from either and rewrite them to obtain the assertions in
 the other.
+
+Here, we give a proof of [the_two_specifications_of_addition_are_equivalent] which only uses rewriting of the given hypotheses, and inductive hypotheses, with no appeal to the theorems of the resident addition function [Nat.add].
 
 We eyeball the two specifications of addition, and see some similarities.
 
