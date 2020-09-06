@@ -604,4 +604,11 @@ Abort.
 
 (* ********** *)
 
+(** * Conclusion
+
+TODO
+
+*)
+
+
 (* end of week-03_specifications.v *)
