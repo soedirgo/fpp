@@ -95,21 +95,26 @@ Definition tail_recursive_specification_of_addition (add : nat -> nat -> nat) :=
   /\
   (forall x' y : nat,
       add (S x') y = add x' (S y)).
+(* end hide *)
 
-(* Exercise 1 *)
+(** * Exercise 1 *)
 
-(* We aim to show that there exists at most one tail-recursive addition
+(** We aim to show that there exists at most one tail-recursive addition
 function. That is, if there exists a function that satisfies the specification,
-then it is unique. *)
+then it is unique.
+
+*)
 Proposition there_is_at_most_one_tail_recursive_addition :
   forall add1 add2 : nat -> nat -> nat,
     tail_recursive_specification_of_addition add1 ->
     tail_recursive_specification_of_addition add2 ->
     forall x y : nat,
       add1 x y = add2 x y.
-(* The proof is nothing remarkable and uses induction as in the earlier
+(** The proof is nothing remarkable and uses induction as in the earlier
 example. Since the specification asserts that [O] is the left identity of
-addition, we choose the left argument [x] as the induction variable. *)
+addition, we choose the left argument [x] as the induction variable.
+
+*)
 Proof.
   intros add1 add2.
   unfold tail_recursive_specification_of_addition.
@@ -125,6 +130,7 @@ Proof.
     exact (IHx' (S y)).
 Qed.
 
+(* begin hide *)
 (* ********** *)
 
 Definition specification_of_the_predecessor_function (pred : nat -> nat) :=
@@ -307,13 +313,16 @@ Proof.
     Search (S _ + _ = S (_ + _)).
     exact (Nat.add_succ_l x' y).
 Qed.
+(* end hide *)
 
-(* Exercise 4 *)
+(** * Exercise 4 *)
 
-(* In the earlier example, we verified that the resident addition function
+(** In the earlier example, we verified that the resident addition function
 satisfies the recursive specification of addition. We will do the same with the
 tail-recursive specification by searching for theorems corresponding to each
-part of the definition. *)
+part of the definition.
+
+*)
 Theorem the_resident_addition_function_satisfies_the_tail_recursive_specification_of_addition :
   tail_recursive_specification_of_addition Nat.add.
 Proof.
@@ -539,12 +548,14 @@ Proof.
     + exact H_rec_O.
     + (** ...this part, where we can tackle the annoying equality for [add] by rewriting them to [Nat.add]:
        *)
+
       intros x' y.
       Check (rec_add_is_equiv_to_resident_add add (conj H_rec_O H_rec_S) (S x') y).
       rewrite -> (rec_add_is_equiv_to_resident_add add (conj H_rec_O H_rec_S) (S x') y).
       rewrite -> (rec_add_is_equiv_to_resident_add add (conj H_rec_O H_rec_S) x' (S y)).
       (** At this point, proving becomes very easy given the suite of theorems provided for us for [Nat.add]:
        *)
+
       Search (S _ + _ = _ + S _).
       exact (plus_Snm_nSm x' y).
   - intros [H_tail_rec_O H_tail_rec_S].
@@ -552,16 +563,19 @@ Proof.
     + exact H_tail_rec_O.
     + (** This part is similar, except we use the tail-recursive counterpart from the lemmas:
        *)
+
       intros x' y.
       Check (tail_rec_add_is_equiv_to_resident_add add (conj H_tail_rec_O H_tail_rec_S)).
       rewrite -> (tail_rec_add_is_equiv_to_resident_add add (conj H_tail_rec_O H_tail_rec_S) (S x') y).
       rewrite -> (tail_rec_add_is_equiv_to_resident_add add (conj H_tail_rec_O H_tail_rec_S) x' y).
       (** Again, standing on the shoulders of giants:
        *)
+
       Search (S _ + _ = S (_ + _)).
       exact (plus_Sn_m x' y).
 Qed.
 
+(* begin hide *)
 (* ********** *)
 
 Theorem associativity_of_recursive_addition_ :
@@ -603,6 +617,7 @@ Proof.
 Abort.
 
 (* ********** *)
+(* end hide *)
 
 (** * Conclusion
 
