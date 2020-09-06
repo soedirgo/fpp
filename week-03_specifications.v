@@ -329,77 +329,11 @@ Qed.
 
 (* ********** *)
 
-(* Exercise 5 *)
-
-(** This alternative proof exploits the fact that there is at most one function that satisfies [recursive_specification_of_addition] (ditto for [tail_recursive_specification_of_addition]). Since the resident addition [Nat.add] satisfies both specifications, we're left with proving the resident addition is equivalent to itself.
-
- First, we prove that all functions satisfying both specifications are equivalent to [Nat.add] through proof by cases:
- *)
-
-Lemma rec_add_is_equiv_to_resident_add :
-  forall add : nat -> nat -> nat,
-    recursive_specification_of_addition add ->
-    forall x y : nat,
-      add x y = Nat.add x y.
-Proof.
-  intros add H_add.
-  apply there_is_at_most_one_recursive_addition.
-  - exact H_add.
-  - apply the_resident_addition_function_satisfies_the_recursive_specification_of_addition.
-Qed.
-
-Lemma tail_rec_add_is_equiv_to_resident_add :
-  forall add : nat -> nat -> nat,
-    tail_recursive_specification_of_addition add ->
-    forall x y : nat,
-      add x y = Nat.add x y.
-Proof.
-  intros add H_add.
-  apply there_is_at_most_one_tail_recursive_addition.
-  - exact H_add.
-  - apply the_resident_addition_function_satisfies_the_tail_recursive_specification_of_addition.
-Qed.
-
-(** Now we apply the lemmas. Everything is normal up until...
- *)
-
-Theorem the_two_specifications_of_addition_are_equivalent' :
-  forall add : nat -> nat -> nat,
-    recursive_specification_of_addition add <-> tail_recursive_specification_of_addition add.
-Proof.
-  intro add.
-  unfold recursive_specification_of_addition.
-  unfold tail_recursive_specification_of_addition.
-  split.
-  - intros [H_rec_O H_rec_S].
-    split.
-    + exact H_rec_O.
-    + (** ...this part, where we can tackle the annoying equality for [add] by rewriting them to [Nat.add]:
-       *)
-      intros x' y.
-      Check (rec_add_is_equiv_to_resident_add add (conj H_rec_O H_rec_S) (S x') y).
-      rewrite -> (rec_add_is_equiv_to_resident_add add (conj H_rec_O H_rec_S) (S x') y).
-      rewrite -> (rec_add_is_equiv_to_resident_add add (conj H_rec_O H_rec_S) x' (S y)).
-      (** At this point, proving becomes very easy given the suite of theorems provided for us for [Nat.add]:
-       *)
-      Search (S _ + _ = _ + S _).
-      exact (plus_Snm_nSm x' y).
-  - intros [H_tail_rec_O H_tail_rec_S].
-    split.
-    + exact H_tail_rec_O.
-    + (** This part is similar, except we use the tail-recursive counterpart from the lemmas:
-       *)
-      intros x' y.
-      Check (tail_rec_add_is_equiv_to_resident_add add (conj H_tail_rec_O H_tail_rec_S)).
-      rewrite -> (tail_rec_add_is_equiv_to_resident_add add (conj H_tail_rec_O H_tail_rec_S) (S x') y).
-      rewrite -> (tail_rec_add_is_equiv_to_resident_add add (conj H_tail_rec_O H_tail_rec_S) x' y).
-      (** Again, standing on the shoulders of giants:
-       *)
-      Search (S _ + _ = S (_ + _)).
-      exact (plus_Sn_m x' y).
-Qed.
+(** * Exercise 5 *)
 
 (**
+Here, we give a proof of [the_two_specifications_of_addition_are_equivalent] which only uses rewriting of the given hypotheses, and inductive hypotheses, with no appeal to the theorems of the resident addition function [Nat.add].
+
 Since the resident addition function [Nat.add] satisfies both specifications, it is
 reasonable to believe that the specifications are equivalent
 (though we do not know for sure until we prove it).
@@ -558,6 +492,74 @@ Proof.
         rewrite -> (H_tail_recursive_specification_of_addition_S (S x'') y).
         rewrite -> (IHx'' (S y)).
         reflexivity.
+Qed.
+
+(** The following alternative proof exploits the fact that there is at most one function that satisfies [recursive_specification_of_addition] (ditto for [tail_recursive_specification_of_addition]). Since the resident addition [Nat.add] satisfies both specifications, we're left with proving the resident addition is equivalent to itself.
+
+ First, we prove that all functions satisfying both specifications are equivalent to [Nat.add] through proof by cases:
+ *)
+
+Lemma rec_add_is_equiv_to_resident_add :
+  forall add : nat -> nat -> nat,
+    recursive_specification_of_addition add ->
+    forall x y : nat,
+      add x y = Nat.add x y.
+Proof.
+  intros add H_add.
+  apply there_is_at_most_one_recursive_addition.
+  - exact H_add.
+  - apply the_resident_addition_function_satisfies_the_recursive_specification_of_addition.
+Qed.
+
+Lemma tail_rec_add_is_equiv_to_resident_add :
+  forall add : nat -> nat -> nat,
+    tail_recursive_specification_of_addition add ->
+    forall x y : nat,
+      add x y = Nat.add x y.
+Proof.
+  intros add H_add.
+  apply there_is_at_most_one_tail_recursive_addition.
+  - exact H_add.
+  - apply the_resident_addition_function_satisfies_the_tail_recursive_specification_of_addition.
+Qed.
+
+(** Now we apply the lemmas. Everything is normal up until...
+ *)
+
+Theorem the_two_specifications_of_addition_are_equivalent' :
+  forall add : nat -> nat -> nat,
+    recursive_specification_of_addition add <-> tail_recursive_specification_of_addition add.
+Proof.
+  intro add.
+  unfold recursive_specification_of_addition.
+  unfold tail_recursive_specification_of_addition.
+  split.
+  - intros [H_rec_O H_rec_S].
+    split.
+    + exact H_rec_O.
+    + (** ...this part, where we can tackle the annoying equality for [add] by rewriting them to [Nat.add]:
+       *)
+      intros x' y.
+      Check (rec_add_is_equiv_to_resident_add add (conj H_rec_O H_rec_S) (S x') y).
+      rewrite -> (rec_add_is_equiv_to_resident_add add (conj H_rec_O H_rec_S) (S x') y).
+      rewrite -> (rec_add_is_equiv_to_resident_add add (conj H_rec_O H_rec_S) x' (S y)).
+      (** At this point, proving becomes very easy given the suite of theorems provided for us for [Nat.add]:
+       *)
+      Search (S _ + _ = _ + S _).
+      exact (plus_Snm_nSm x' y).
+  - intros [H_tail_rec_O H_tail_rec_S].
+    split.
+    + exact H_tail_rec_O.
+    + (** This part is similar, except we use the tail-recursive counterpart from the lemmas:
+       *)
+      intros x' y.
+      Check (tail_rec_add_is_equiv_to_resident_add add (conj H_tail_rec_O H_tail_rec_S)).
+      rewrite -> (tail_rec_add_is_equiv_to_resident_add add (conj H_tail_rec_O H_tail_rec_S) (S x') y).
+      rewrite -> (tail_rec_add_is_equiv_to_resident_add add (conj H_tail_rec_O H_tail_rec_S) x' y).
+      (** Again, standing on the shoulders of giants:
+       *)
+      Search (S _ + _ = S (_ + _)).
+      exact (plus_Sn_m x' y).
 Qed.
 
 (* ********** *)
