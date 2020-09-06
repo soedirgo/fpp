@@ -687,7 +687,9 @@ Theorem O_is_left_neutral_for_tail_recursive_addition :
 Proof.
   intros add S_add.
   apply (the_two_specifications_of_addition_are_equivalent add) in S_add.
-  apply (O_is_left_neutral_for_recursive_addition add S_add).
+  intro n.
+  Check (O_is_left_neutral_for_recursive_addition add S_add).
+  exact (O_is_left_neutral_for_recursive_addition add S_add n).
 Qed.
 
 Theorem O_is_right_neutral_for_tail_recursive_addition :
@@ -698,7 +700,9 @@ Theorem O_is_right_neutral_for_tail_recursive_addition :
 Proof.
   intros add S_add.
   apply (the_two_specifications_of_addition_are_equivalent add) in S_add.
-  apply (O_is_right_neutral_for_recursive_addition add S_add).
+  intro n.
+  Check (O_is_right_neutral_for_recursive_addition add S_add).
+  exact (O_is_right_neutral_for_recursive_addition add S_add n).
 Qed.
 
 (* ********** *)
