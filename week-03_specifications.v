@@ -340,6 +340,8 @@ Qed.
 
 (** * Exercise 5 *)
 
+(** ** Solution 1 *)
+
 (**
 Here, we give a proof of [the_two_specifications_of_addition_are_equivalent] which only uses rewriting of the given hypotheses, and inductive hypotheses, with no appeal to the theorems of the resident addition function [Nat.add].
 
@@ -502,6 +504,8 @@ Proof.
         rewrite -> (IHx'' (S y)).
         reflexivity.
 Qed.
+
+(** ** Solution 2 *)
 
 (** The following alternative proof exploits the fact that there is at most one function that satisfies [recursive_specification_of_addition] (ditto for [tail_recursive_specification_of_addition]). Since the resident addition [Nat.add] satisfies both specifications, we're left with proving the resident addition is equivalent to itself.
 
