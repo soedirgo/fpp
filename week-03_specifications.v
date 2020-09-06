@@ -31,6 +31,19 @@
 
 (** * Introduction
 
+This assignment defines specifications as predicates that take in a candidate implementation, and apply that candidate to some variables universally quantified over the domain of the candidate.
+
+Here, we see the correspondence of specifications to the candidate implementations. The body of both definitions look very similar.
+
+[forall : nat] quantifies over all variables in the domain of the candidate, just like how the input variable of a candidate is quantified over all variables in the domain.
+
+Conjunction of logical propositions in specifications correspond to case-split in implementations, though in specifications, the disjointness and completeness of case-split is not enforced.
+
+In each conjunct, a proposition of the candidate proposition is written. However, these propositions should not just be any proposition: they should correspond to an equation that, when rewrited with, correspond to a single-step reduction computation.
+
+This is expected, since application of any constructively-defined candidate implementation should correspond to a computation.
+
+Then, we use these specifications to form propositions about the number of inhabitants (implementations) of these specifications. This is needed, because we are given complete freedom in specifying a logical specification: it is possible to formulate [specification_of_the_predecessor_and_successor_function], even though this specification has a contradictory aspect [a_contradictory_aspect_of_the_predecessor_and_successor_function].
 
 %\newpage%
  *)
