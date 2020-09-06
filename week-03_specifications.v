@@ -432,7 +432,7 @@ Proof.
         rewrite -> (H_recursive_specification_of_addition_O (S y)).
 
         (**
-           Then, because the terms on both sides of the equation in the goal are constructed from just the constructers in [nat], the truth of the goal can be established by [reflexivity].
+           Then, because the terms on both sides of the equation in the goal are constructed from just the constructors in [nat], the truth of the goal can be established by [reflexivity].
 
          *)
         reflexivity.
