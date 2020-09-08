@@ -612,25 +612,15 @@ Proof.
        (H_T_implies_U : T -> U) => H_T_implies_U (H_R_implies_T (H_Q_implies_R (H_P2_implies_Q H_P2)))
  end)
       >>
+
+      Compared to the term corresponding to the proof of Exercise 12a, there are discarded hypotheses: there are underscores in the function parameters. This is because when we construct functions within a case-split, not all of the parameters (hypotheses) are needed in each subgoal.
+
+      On the other hand, the proof of Exercise 12a has the case-split within the body of the function, and both hypotheses are used: one hypothesis is used in one case, and the other hypothesis is used in the other case. So, there is no discarding of hypotheses there.
+
+      The conclusion from Exercise 12d is: there is a substantial difference in whether hypotheses are discarded, depending on whether [intros] is done before [destruct], or the [destruct] is done before [intros]. Practically, less underscores in the parameters means better readability of proofs.
    *)
 
-  (** The term corresponding to this proof is:
-      <<
-(fun (P1 P2 Q R T U : Prop) (H_P1_or_P2 : P1 \/ P2) (H_P1_implies_Q : P1 -> Q) (H_P2_implies_Q : P2 -> Q)
-   (H_Q_implies_R : Q -> R) (H_R_implies_T : R -> T) (H_T_implies_U : T -> U) =>
- match H_P1_or_P2 with
- | or_introl H_P1 => H_T_implies_U (H_R_implies_T (H_Q_implies_R (H_P1_implies_Q H_P1)))
- | or_intror H_P2 => H_T_implies_U (H_R_implies_T (H_Q_implies_R (H_P2_implies_Q H_P2)))
- end)
-      >>
-
-      Note the repeated occurences of [H_T_implies_U (H_R_implies_T (H_Q_implies_R (H_P2_implies_Q H_P2)))].
-
-      Compared to our use of [destruct] on a hypothesis that is a conjunction as early as possible in the alternative backward proof of Exercise 9, here the [destruct] is used on a hypothesis that is a disjunction.
-
-      So, there are no discarded hypotheses: there are no underscores in the pattern match.
-   *)
-Abort.
+Qed.
 
 (* ********** *)
 
