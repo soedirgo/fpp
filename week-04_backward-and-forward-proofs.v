@@ -5,24 +5,23 @@
 
 (* ********** *)
 
-(* Your name:
-   Your student ID number:
-   Your e-mail address: 
+(* Your name: Koo Zhengqun
+   Your e-mail address: zhengqun.koo@u.nus.edu
+   Your student number: A0164207L
+ *)
 
-   Your name:
-   Your student ID number:
-   Your e-mail address: 
+(* Your name: Bobbie Soedirgo
+   Your e-mail address: sram-b@comp.nus.edu.sg
+   Your student number: A0181001A
+ *)
 
-   Your name:
-   Your student ID number:
-   Your e-mail address: 
+(* Your name: Kuan Wei Heng
+   Your e-mail address: kuanwh@u.nus.edu
+   Your student number: A0121712X
+ *)
 
-   Your name:
-   Your student ID number:
-   Your e-mail address: 
-*)
-
-(** Roughly speaking,
+(** * Introduction
+    Roughly speaking,
     - Backward proofs are a chain of [apply] tactics that apply hypotheses to the goal, until the goal exactly matches one of the hypotheses.
     - Forward proofs are a chain of [apply] tactics that apply hypotheses to other hypotheses, binding the resulting hypotheses to new names, until the goal matches exactly the result of a tactic applied to a subset of the hypotheses.
 
@@ -48,6 +47,7 @@
 
 (* ***********)
 
+(* begin hide *)
 Proposition identity :
   forall A : Prop,
     A -> A.
@@ -120,6 +120,7 @@ Proof.
   Check (H_C_implies_D H_C).
   exact (H_C_implies_D H_C).
 Qed.
+(* end hide *)
 
 (* ********** *)
 
@@ -472,6 +473,8 @@ Proof.
 
   (** ** a
       Use "destruct H_P1_or_P2 as [H_P1 | H_P2]." as early as you can.
+
+      This is a forward proof, because we use a tactic on the initial hypothesis.
    *)
 
   destruct H_P1_or_P2 as [H_P1 | H_P2].
