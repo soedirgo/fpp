@@ -20,6 +20,15 @@
    Your student number: A0121712X
  *)
 
+(**
+ %\title{Functional Programming in Coq}%
+ %\author{Bobbie Soedirgo, Koo Zhengqun, Kuan Wei Heng}%
+ %\date{\today}%
+ %\maketitle%
+ %\tableofcontents%
+ %\newpage%
+ *)
+
 (** * Introduction
     Roughly speaking,
     - Backward proofs are a chain of [apply] tactics that apply hypotheses to the goal, until the goal exactly matches one of the hypotheses.
