@@ -756,6 +756,8 @@ Qed.
 
 (* ********** *)
 
+(** begin hide **)
+
 (* Paraphernalia: *)
 
 Ltac fold_unfold_tactic name := intros; unfold name; fold name; reflexivity.
@@ -1146,7 +1148,11 @@ Proof.
   fold_unfold_tactic mul_v12.
 Qed.
 
+(** end hide **)
+
 (* ***** *)
+
+(** ** Exercise 27 *)
 
 (* Tail-recursive implementation of the multiplication function, using add_v1 *)
 
@@ -1175,6 +1181,8 @@ Qed.
 
 (* ***** *)
 
+(** ** Exercise 28 *)
+
 (* Tail-recursive implementation of the multiplication function, using add_v2 *)
 
 Fixpoint mul_v22_aux (x y a : nat) : nat :=
@@ -1199,6 +1207,8 @@ Proof.
 Qed.
 
 (* ********** *)
+
+(** ** Exercise 29 *)
 
 (* Equivalence of mul_v11, mul_v12, mul_v21, and mul_v22 *)
 
@@ -1329,6 +1339,8 @@ Proof.
     rewrite -> (IHi' j).
     exact (equivalence_of_add_v1_and_add_v2 (mul_v22_aux i' j 0) j).
 Qed.
+
+(** begin hide **)
 
 (* ********** *)
 
@@ -1547,5 +1559,7 @@ Abort.
 (* ... *)
 
 (* ********** *)
+
+(** end hide **)
 
 (* end of week-04_equational-reasoning-about-arithmetical-functions.v *)
