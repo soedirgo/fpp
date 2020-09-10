@@ -579,8 +579,10 @@ Proof.
 
 Qed.
 
-(** ** c TODO
+(** ** c
     The two proofs Exercise 12a and Exercise 12b have already been compared.
+
+    One has repeated occurences of [H_T_implies_U (H_R_implies_T (H_Q_implies_R (H_P2_implies_Q H_P2)))], while the other does not.
  *)
 
 (** ** d
