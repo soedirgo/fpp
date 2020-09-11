@@ -643,9 +643,11 @@ Qed.
 (** How would you prove the following propositions?
     Forward or backward?
 
-    [ladidah] has an initial hypothesis that is a disjunction, just like Exercise 12a and Exercise 12b. The term corresponding to the forward proof of Exercise 12a has repeated applications while the backward proof of Exercise 12b does not, so to avoid repeated applications, we prove [ladidah] in a backward way.
+    [ladidah] has an initial hypothesis that is a disjunction, just like Exercise 12a and Exercise 12b. The term corresponding to the forward proof of Exercise 12a has repeated applications while the backward proof of Exercise 12b does not.
 
-    This means using [destruct] as late as possible.
+    So to figure out how complex the proofs could be, we reconstruct the same term again and again by performing repeated applications, and prove [ladidah] in a forward way.
+
+    This means using [destruct] as early as possible.
  *)
 
 Proposition ladidah :
@@ -654,37 +656,47 @@ Proposition ladidah :
 Proof.
   intros P1 P2 P3 P4 Q R T U.
   intros H_P1_or_P2_or_P3_or_P4 H_P1_implies_Q H_P2_implies_Q H_P3_implies_Q H_P4_implies_Q H_Q_implies_R H_R_implies_T H_T_implies_U.
-  apply H_T_implies_U.
-  apply H_R_implies_T.
-  apply H_Q_implies_R.
-  (** Here our goal is the proposition [Q] which is the consequent of the implications of which the antecedents are each of the four disjuncts in the initial hypothesis.
-
-      As noted in Exercise 12b, we must [destruct] here.
+  (** To avoid discarding hypotheses like in Exercise 12d, we [destruct] here instead of in the [intros].
    *)
 
   destruct H_P1_or_P2_or_P3_or_P4 as [[H_P1 | H_P2] | [H_P3 | H_P4]].
-  - apply (H_P1_implies_Q H_P1).
-  - apply (H_P2_implies_Q H_P2).
-  - apply (H_P3_implies_Q H_P3).
-  - apply (H_P4_implies_Q H_P4).
+  (** Here we have four subgoals corresponding to the four disjuncts in the initial hypothesis.
+
+      In each subgoal, we must prove the proposition [U] which we must convert via three applications to [Q]. Then the subgoal [Q] is the consequent of the implications of which the antecedents are each of the four disjuncts. Then we match the goal exactly with the hypothesis corresponding to the destructed disjunct.
+   *)
+
+  - apply H_T_implies_U.
+    apply H_R_implies_T.
+    apply H_Q_implies_R.
+    apply H_P1_implies_Q.
+    exact H_P1.
+  - apply H_T_implies_U.
+    apply H_R_implies_T.
+    apply H_Q_implies_R.
+    apply H_P2_implies_Q.
+    exact H_P2.
+  - apply H_T_implies_U.
+    apply H_R_implies_T.
+    apply H_Q_implies_R.
+    apply H_P3_implies_Q.
+    exact H_P3.
+  - apply H_T_implies_U.
+    apply H_R_implies_T.
+    apply H_Q_implies_R.
+    apply H_P4_implies_Q.
+    exact H_P4.
   Show Proof.
   (** The term corresponding to this proof is:
       <<
-(fun (P1 P2 P3 P4 Q R T U : Prop)
-   (H_P1_or_P2_or_P3_or_P4 : (P1 \/ P2) \/ P3 \/ P4)
-   (H_P1_implies_Q : P1 -> Q) (H_P2_implies_Q : P2 -> Q)
-   (H_P3_implies_Q : P3 -> Q) (H_P4_implies_Q : P4 -> Q)
-   (H_Q_implies_R : Q -> R) (H_R_implies_T : R -> T)
-   (H_T_implies_U : T -> U) =>
- H_T_implies_U
-   (H_R_implies_T
-      (H_Q_implies_R
-         match H_P1_or_P2_or_P3_or_P4 with
-         | or_introl (or_introl H_P1) => H_P1_implies_Q H_P1
-         | or_introl (or_intror H_P2) => H_P2_implies_Q H_P2
-         | or_intror (or_introl H_P3) => H_P3_implies_Q H_P3
-         | or_intror (or_intror H_P4) => H_P4_implies_Q H_P4
-         end)))
+(fun (P1 P2 P3 P4 Q R T U : Prop) (H_P1_or_P2_or_P3_or_P4 : (P1 \/ P2) \/ P3 \/ P4) (H_P1_implies_Q : P1 -> Q)
+   (H_P2_implies_Q : P2 -> Q) (H_P3_implies_Q : P3 -> Q) (H_P4_implies_Q : P4 -> Q) (H_Q_implies_R : Q -> R)
+   (H_R_implies_T : R -> T) (H_T_implies_U : T -> U) =>
+ match H_P1_or_P2_or_P3_or_P4 with
+ | or_introl (or_introl H_P1) => H_T_implies_U (H_R_implies_T (H_Q_implies_R (H_P1_implies_Q H_P1)))
+ | or_introl (or_intror H_P2) => H_T_implies_U (H_R_implies_T (H_Q_implies_R (H_P2_implies_Q H_P2)))
+ | or_intror (or_introl H_P3) => H_T_implies_U (H_R_implies_T (H_Q_implies_R (H_P3_implies_Q H_P3)))
+ | or_intror (or_intror H_P4) => H_T_implies_U (H_R_implies_T (H_Q_implies_R (H_P4_implies_Q H_P4)))
+ end)
       >>
    *)
 
@@ -693,9 +705,11 @@ Qed.
 (** How would you prove the following propositions?
     Forward or backward?
 
-    [toodeloo] has a conclusion that is a conjunction, just like Exercise 9, Exercise 10, and Exercise 11. In each of these exercises, the backward proof has repeated applications while the forward proof does not, so to avoid repeated applications, we prove [toodeloo] in a forward way.
+    [toodeloo] has a conclusion that is a conjunction, just like Exercise 9, Exercise 10, and Exercise 11. In each of these exercises, the backward proof has repeated applications while the forward proof does not.
 
-    This means using [split] as late as possible.
+    So to figure out how complex the proofs could be, we reconstruct the same term again and again by performing repeated applications, and prove [toodeloo] in a forward way.
+
+    This means using [split] as early as possible.
  *)
 
 Proposition toodeloo :
@@ -703,31 +717,51 @@ Proposition toodeloo :
     P -> (P -> Q) -> (Q -> R) -> (R -> T) -> (T -> U1) -> (T -> U2) -> (T -> U3) -> (T -> U4) -> (U1 /\ U2) /\ (U3 /\ U4).
   intros P Q R T U1 U2 U3 U4.
   intros H_P H_P_implies_Q H_Q_implies_R H_R_implies_T H_T_implies_U1 H_T_implies_U2 H_T_implies_U3 H_T_implies_U4.
-  assert (H_Q := H_P_implies_Q H_P).
-  assert (H_R := H_Q_implies_R H_Q).
-  assert (H_T := H_R_implies_T H_R).
-  assert (H_U1 := H_T_implies_U1 H_T).
-  assert (H_U2 := H_T_implies_U2 H_T).
-  assert (H_U3 := H_T_implies_U3 H_T).
-  assert (H_U4 := H_T_implies_U4 H_T).
-  
-  (** The latest possible [split] is immediately after we have the four conjuncts. *)
   split.
   - split.
-    + exact H_U1.
-    + exact H_U2.
+    + apply H_T_implies_U1.
+      apply H_R_implies_T.
+      apply H_Q_implies_R.
+      apply H_P_implies_Q.
+      exact H_P.
+    + apply H_T_implies_U2.
+      apply H_R_implies_T.
+      apply H_Q_implies_R.
+      apply H_P_implies_Q.
+      exact H_P.
   - split.
-    + exact H_U3.
-    + exact H_U4.
+    + apply H_T_implies_U3.
+      apply H_R_implies_T.
+      apply H_Q_implies_R.
+      apply H_P_implies_Q.
+      exact H_P.
+    + apply H_T_implies_U4.
+      apply H_R_implies_T.
+      apply H_Q_implies_R.
+      apply H_P_implies_Q.
+      exact H_P.
+  Show Proof.
+  (** The term corresponding to this proof is:
+      <<
+(fun (P Q R T U1 U2 U3 U4 : Prop) (H_P : P) (H_P_implies_Q : P -> Q) (H_Q_implies_R : Q -> R)
+   (H_R_implies_T : R -> T) (H_T_implies_U1 : T -> U1) (H_T_implies_U2 : T -> U2) (H_T_implies_U3 : T -> U3)
+   (H_T_implies_U4 : T -> U4) =>
+ conj
+   (conj (H_T_implies_U1 (H_R_implies_T (H_Q_implies_R (H_P_implies_Q H_P))))
+      (H_T_implies_U2 (H_R_implies_T (H_Q_implies_R (H_P_implies_Q H_P)))))
+   (conj (H_T_implies_U3 (H_R_implies_T (H_Q_implies_R (H_P_implies_Q H_P))))
+      (H_T_implies_U4 (H_R_implies_T (H_Q_implies_R (H_P_implies_Q H_P))))))
+      >>
+   *)
 Qed.
 
 (** How complex could the size of such proofs be
     (relative to the number of hypotheses about P1, P2, P3, etc.
     and to the number of conclusions about U1, U2, U3, etc.)?
 
-    We have delayed as late as possible the proof of the disjunctive hypothesis, so that [destruct]ing the disjunctive hypothesis only requires us to, for each subgoal, apply one hypothesis to another. So, the complexity of the size of the proof relative to the number of hypotheses about [P1], [P2], [P3], [P4], is the complexity of the size of the remaining proof, which has linear complexity.
+    We have brought forth as early as possible the proof of the disjunctive hypothesis, so that [destruct]ing the disjunctive hypothesis with [n] disjuncts requires us to, for each of the [n] subgoals, apply [m] implication hypotheses from the disjunctive hypothesis to the conclusion of the proposition. So, the complexity of the size of the proof relative to the number of hypotheses about [P1], [P2], [P3], [P4] (this number of hypotheses is [n]), is O(n), which is linear complexity.
 
-    We have delayed as late as possible the proof of the conjunctive hypothesis, so that [split]ting the conjunctive hypothesis only requires us to, for each subgoal, say that the subgoal exactly matches one hypothesis. So, the complexity of the size of the proof relative to the number of hypotheses about [U1], [U2], [U3], [U4], is the complexity of the size of the remaining proof, which has linear complexity.
+    We have brought forth as early as possible the proof of the conjunctive hypothesis, so that [split]ting the conjunctive hypothesis with [n] conjuncts requires us to, for each of the [n] subgoals, apply [m] implication hypotheses from the conjunctive hypothesis to the conclusion of the proposition. So, the complexity of the size of the proof relative to the number of hypotheses about [U1], [U2], [U3], [U4] (this number of hypotheses is [n]), is O(n), which is linear complexity.
  *)
 
 (* ***********)
