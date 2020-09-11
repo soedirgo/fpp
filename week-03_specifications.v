@@ -958,7 +958,7 @@ Qed.
 
 (** * Conclusion
 
-TODO
+By emphasizing the importance of term rewriting, this assignment moves the focus of the YSC3236 module away from the induction principle, and towards using axiomatic theories in proofs.
 
 *)
 
