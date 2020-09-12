@@ -5,6 +5,50 @@
 
 (* ********** *)
 
+(* Your name: Koo Zhengqun
+   Your e-mail address: zhengqun.koo@u.nus.edu
+   Your student number: A0164207L
+ *)
+
+(* Your name: Bobbie Soedirgo
+   Your e-mail address: sram-b@comp.nus.edu.sg
+   Your student number: A0181001A
+ *)
+
+(* Your name: Kuan Wei Heng
+   Your e-mail address: kuanwh@u.nus.edu
+   Your student number: A0121712X
+ *)
+
+(**
+ %\title{Functional Programming in Coq}%
+ %\author{Bobbie Soedirgo, Koo Zhengqun, Kuan Wei Heng}%
+ %\date{\today}%
+ %\maketitle%
+ %\tableofcontents%
+ %\newpage%
+ *)
+
+(** * Introduction
+
+This assignment defines specifications as predicates that take in a candidate implementation, and apply that candidate to some variables universally quantified over the domain of the candidate.
+
+Here, we see the correspondence of specifications to the candidate implementations. The body of both definitions look very similar.
+
+[forall : nat] quantifies over all variables in the domain of the candidate, just like how the input variable of a candidate is quantified over all variables in the domain.
+
+Conjunction of logical propositions in specifications correspond to case-split in implementations, though in specifications, the disjointness and completeness of case-split is not enforced.
+
+In each conjunct, a proposition of the candidate proposition is written. However, these propositions should not just be any proposition: they should correspond to an equation that, when rewrited with, correspond to a single-step reduction computation.
+
+This is expected, since application of any constructively-defined candidate implementation should correspond to a computation.
+
+Then, we use these specifications to form propositions about the number of inhabitants (implementations) of these specifications. This is needed, because we are given complete freedom in specifying a logical specification: it is possible to formulate [specification_of_the_predecessor_and_successor_function], even though this specification has a contradictory aspect [a_contradictory_aspect_of_the_predecessor_and_successor_function].
+
+%\newpage%
+ *)
+
+(* begin hide *)
 (* Paraphernalia: *)
 
 Require Import Arith.
@@ -51,21 +95,26 @@ Definition tail_recursive_specification_of_addition (add : nat -> nat -> nat) :=
   /\
   (forall x' y : nat,
       add (S x') y = add x' (S y)).
+(* end hide *)
 
-(* Exercise 1 *)
+(** * Exercise 1 *)
 
-(* We aim to show that there exists at most one tail-recursive addition
+(** We aim to show that there exists at most one tail-recursive addition
 function. That is, if there exists a function that satisfies the specification,
-then it is unique. *)
+then it is unique.
+
+*)
 Proposition there_is_at_most_one_tail_recursive_addition :
   forall add1 add2 : nat -> nat -> nat,
     tail_recursive_specification_of_addition add1 ->
     tail_recursive_specification_of_addition add2 ->
     forall x y : nat,
       add1 x y = add2 x y.
-(* The proof is nothing remarkable and uses induction as in the earlier
+(** The proof is nothing remarkable and uses induction as in the earlier
 example. Since the specification asserts that [O] is the left identity of
-addition, we choose the left argument [x] as the induction variable. *)
+addition, we choose the left argument [x] as the induction variable.
+
+*)
 Proof.
   intros add1 add2.
   unfold tail_recursive_specification_of_addition.
@@ -81,6 +130,7 @@ Proof.
     exact (IHx' (S y)).
 Qed.
 
+(* begin hide *)
 (* ********** *)
 
 Definition specification_of_the_predecessor_function (pred : nat -> nat) :=
@@ -263,13 +313,16 @@ Proof.
     Search (S _ + _ = S (_ + _)).
     exact (Nat.add_succ_l x' y).
 Qed.
+(* end hide *)
 
-(* Exercise 4 *)
+(** * Exercise 4 *)
 
-(* In the earlier example, we verified that the resident addition function
+(** In the earlier example, we verified that the resident addition function
 satisfies the recursive specification of addition. We will do the same with the
 tail-recursive specification by searching for theorems corresponding to each
-part of the definition. *)
+part of the definition.
+
+*)
 Theorem the_resident_addition_function_satisfies_the_tail_recursive_specification_of_addition :
   tail_recursive_specification_of_addition Nat.add.
 Proof.
@@ -285,75 +338,9 @@ Qed.
 
 (* ********** *)
 
-(* Exercise 5 *)
+(** * Exercise 5 *)
 
-(** This alternative proof exploits the fact that there is at most one function that satisfies [recursive_specification_of_addition] (ditto for [tail_recursive_specification_of_addition]). Since the resident addition [Nat.add] satisfies both specifications, we're left with proving the resident addition is equivalent to itself.
-
- First, we prove that all functions satisfying both specifications are equivalent to [Nat.add] through proof by cases:
- *)
-
-Lemma rec_add_is_equiv_to_resident_add :
-  forall add : nat -> nat -> nat,
-    recursive_specification_of_addition add ->
-    forall x y : nat,
-      add x y = Nat.add x y.
-Proof.
-  intros add H_add.
-  apply there_is_at_most_one_recursive_addition.
-  - exact H_add.
-  - apply the_resident_addition_function_satisfies_the_recursive_specification_of_addition.
-Qed.
-
-Lemma tail_rec_add_is_equiv_to_resident_add :
-  forall add : nat -> nat -> nat,
-    tail_recursive_specification_of_addition add ->
-    forall x y : nat,
-      add x y = Nat.add x y.
-Proof.
-  intros add H_add.
-  apply there_is_at_most_one_tail_recursive_addition.
-  - exact H_add.
-  - apply the_resident_addition_function_satisfies_the_tail_recursive_specification_of_addition.
-Qed.
-
-(** Now we apply the lemmas. Everything is normal up until...
- *)
-
-Theorem the_two_specifications_of_addition_are_equivalent' :
-  forall add : nat -> nat -> nat,
-    recursive_specification_of_addition add <-> tail_recursive_specification_of_addition add.
-Proof.
-  intro add.
-  unfold recursive_specification_of_addition.
-  unfold tail_recursive_specification_of_addition.
-  split.
-  - intros [H_rec_O H_rec_S].
-    split.
-    + exact H_rec_O.
-    + (** ...this part, where we can tackle the annoying equality for [add] by rewriting them to [Nat.add]:
-       *)
-      intros x' y.
-      Check (rec_add_is_equiv_to_resident_add add (conj H_rec_O H_rec_S) (S x') y).
-      rewrite -> (rec_add_is_equiv_to_resident_add add (conj H_rec_O H_rec_S) (S x') y).
-      rewrite -> (rec_add_is_equiv_to_resident_add add (conj H_rec_O H_rec_S) x' (S y)).
-      (** At this point, proving becomes very easy given the suite of theorems provided for us for [Nat.add]:
-       *)
-      Search (S _ + _ = _ + S _).
-      exact (plus_Snm_nSm x' y).
-  - intros [H_tail_rec_O H_tail_rec_S].
-    split.
-    + exact H_tail_rec_O.
-    + (** This part is similar, except we use the tail-recursive counterpart from the lemmas:
-       *)
-      intros x' y.
-      Check (tail_rec_add_is_equiv_to_resident_add add (conj H_tail_rec_O H_tail_rec_S)).
-      rewrite -> (tail_rec_add_is_equiv_to_resident_add add (conj H_tail_rec_O H_tail_rec_S) (S x') y).
-      rewrite -> (tail_rec_add_is_equiv_to_resident_add add (conj H_tail_rec_O H_tail_rec_S) x' y).
-      (** Again, standing on the shoulders of giants:
-       *)
-      Search (S _ + _ = S (_ + _)).
-      exact (plus_Sn_m x' y).
-Qed.
+(** ** Solution 1 *)
 
 (**
 Since the resident addition function [Nat.add] satisfies both specifications, it is
@@ -363,6 +350,8 @@ To prove this, we
 need to show that the definitions have the same "expressive power", which means we
 can take the assertions from either and rewrite them to obtain the assertions in
 the other.
+
+Here, we give a proof of [the_two_specifications_of_addition_are_equivalent] which only uses rewriting of the given hypotheses, and inductive hypotheses, with no appeal to the theorems of the resident addition function [Nat.add]. This demonstrates that each specification of addition gives enough information about the computations of addition, to simulate the computation in the other specification. This would be harder to demonstrate if the proof were to appeal to theorems of [Nat.add].
 
 We eyeball the two specifications of addition, and see some similarities.
 
@@ -443,7 +432,7 @@ Proof.
         rewrite -> (H_recursive_specification_of_addition_O (S y)).
 
         (**
-           Then, because the terms on both sides of the equation in the goal are constructed from just the constructers in [nat], the truth of the goal can be established by [reflexivity].
+           Then, because the terms on both sides of the equation in the goal are constructed from just the constructors in [nat], the truth of the goal can be established by [reflexivity].
 
          *)
         reflexivity.
@@ -516,12 +505,87 @@ Proof.
         reflexivity.
 Qed.
 
+(** ** Solution 2 *)
+
+(** The following alternative proof exploits the fact that there is at most one function that satisfies [recursive_specification_of_addition] (ditto for [tail_recursive_specification_of_addition]). Since the resident addition [Nat.add] satisfies both specifications, we're left with proving the resident addition is equivalent to itself.
+
+ First, we prove that all functions satisfying both specifications are equivalent to [Nat.add] through proof by cases:
+ *)
+
+Lemma rec_add_is_equiv_to_resident_add :
+  forall add : nat -> nat -> nat,
+    recursive_specification_of_addition add ->
+    forall x y : nat,
+      add x y = Nat.add x y.
+Proof.
+  intros add H_add.
+  apply there_is_at_most_one_recursive_addition.
+  - exact H_add.
+  - apply the_resident_addition_function_satisfies_the_recursive_specification_of_addition.
+Qed.
+
+Lemma tail_rec_add_is_equiv_to_resident_add :
+  forall add : nat -> nat -> nat,
+    tail_recursive_specification_of_addition add ->
+    forall x y : nat,
+      add x y = Nat.add x y.
+Proof.
+  intros add H_add.
+  apply there_is_at_most_one_tail_recursive_addition.
+  - exact H_add.
+  - apply the_resident_addition_function_satisfies_the_tail_recursive_specification_of_addition.
+Qed.
+
+(** Now we apply the lemmas. Everything is normal up until...
+ *)
+
+Theorem the_two_specifications_of_addition_are_equivalent' :
+  forall add : nat -> nat -> nat,
+    recursive_specification_of_addition add <-> tail_recursive_specification_of_addition add.
+Proof.
+  intro add.
+  unfold recursive_specification_of_addition.
+  unfold tail_recursive_specification_of_addition.
+  split.
+  - intros [H_rec_O H_rec_S].
+    split.
+    + exact H_rec_O.
+    + (** ...this part, where we can tackle the annoying equality for [add] by rewriting them to [Nat.add]:
+       *)
+
+      intros x' y.
+      Check (rec_add_is_equiv_to_resident_add add (conj H_rec_O H_rec_S) (S x') y).
+      rewrite -> (rec_add_is_equiv_to_resident_add add (conj H_rec_O H_rec_S) (S x') y).
+      rewrite -> (rec_add_is_equiv_to_resident_add add (conj H_rec_O H_rec_S) x' (S y)).
+      (** At this point, proving becomes very easy given the suite of theorems provided for us for [Nat.add]:
+       *)
+
+      Search (S _ + _ = _ + S _).
+      exact (plus_Snm_nSm x' y).
+  - intros [H_tail_rec_O H_tail_rec_S].
+    split.
+    + exact H_tail_rec_O.
+    + (** This part is similar, except we use the tail-recursive counterpart from the lemmas:
+       *)
+
+      intros x' y.
+      Check (tail_rec_add_is_equiv_to_resident_add add (conj H_tail_rec_O H_tail_rec_S)).
+      rewrite -> (tail_rec_add_is_equiv_to_resident_add add (conj H_tail_rec_O H_tail_rec_S) (S x') y).
+      rewrite -> (tail_rec_add_is_equiv_to_resident_add add (conj H_tail_rec_O H_tail_rec_S) x' y).
+      (** Again, standing on the shoulders of giants:
+       *)
+
+      Search (S _ + _ = S (_ + _)).
+      exact (plus_Sn_m x' y).
+Qed.
+
 (* ********** *)
 
-(* Exercise 6 *)
+(** * Exercise 6 *)
 
 (** This one is proven using routine induction on n1.
  *)
+
 Theorem associativity_of_recursive_addition :
   forall add : nat -> nat -> nat,
     recursive_specification_of_addition add ->
@@ -546,6 +610,7 @@ Qed.
 
 (** As with Exercise 5, we can also use the theorem that all functions satisfying the recursive specification for addition is equivalent to [Nat.add]. This lets us omit the induction on n1:
  *)
+
 Theorem associativity_of_recursive_addition' :
   forall add : nat -> nat -> nat,
     recursive_specification_of_addition add ->
@@ -567,6 +632,7 @@ Qed.
 
 (** We can prove this using the same steps as part a, or we can use the fact that both specifications for addition are equivalent to save us some work:
  *)
+
 Theorem associativity_of_tail_recursive_addition :
   forall add : nat -> nat -> nat,
     tail_recursive_specification_of_addition add ->
@@ -580,7 +646,7 @@ Qed.
 
 (* ********** *)
 
-(* Exercise 7 (used for Exercise 8) *)
+(** * Exercise 7 (used for Exercise 8) *)
 
 Lemma commutativity_of_recursive_addition_O :
   forall add : nat -> nat -> nat,
@@ -644,10 +710,11 @@ Qed.
 
 (* ********** *)
 
-(* Exercise 8 *)
+(** * Exercise 8 *)
 
 (** This part is trivial to prove:
  *)
+
 Theorem O_is_left_neutral_for_recursive_addition :
   forall add : nat -> nat -> nat,
     recursive_specification_of_addition add ->
@@ -665,6 +732,7 @@ Qed.
 
 (** This part is trickier. We can prove it by induction (which is boring), or we can use the fact that addition is commutative, which we've just proven in Exercise 7:
  *)
+
 Theorem O_is_right_neutral_for_recursive_addition :
   forall add : nat -> nat -> nat,
     recursive_specification_of_addition add ->
@@ -679,6 +747,7 @@ Qed.
 
 (** Again, we can prove the tail recursive counterpart with as with part a, or we can use previously proven theorems:
  *)
+
 Theorem O_is_left_neutral_for_tail_recursive_addition :
   forall add : nat -> nat -> nat,
     tail_recursive_specification_of_addition add ->
@@ -708,3 +777,189 @@ Qed.
 (* ********** *)
 
 (* end of week-03_specifications.v *)
+
+(* week-03_induction-over-binary-trees.v *)
+(* FPP 2020 - YSC3236 2020-2021, Sem1 *)
+(* Olivier Danvy <danvy@yale-nus.edu.sg> *)
+(* Version of 27 Aug 2020 *)
+
+(* Your name: Koo Zhengqun
+   Your e-mail address: zhengqun.koo@u.nus.edu
+   Your student number: A0164207L
+ *)
+
+(* Your name: Bobbie Soedirgo
+   Your e-mail address: sram-b@comp.nus.edu.sg
+   Your student number: A0181001A
+ *)
+
+(* Your name: Kuan Wei Heng
+   Your e-mail address: kuanwh@u.nus.edu
+   Your student number: A0121712X
+ *)
+
+(* ********** *)
+
+(* begin hide *)
+Inductive binary_tree (V : Type) : Type :=
+| Leaf : V -> binary_tree V
+| Node : binary_tree V -> binary_tree V -> binary_tree V.
+
+(* ********** *)
+
+Definition specification_of_mirror (mirror : forall V : Type, binary_tree V -> binary_tree V) : Prop :=
+  (forall (V : Type)
+          (v : V),
+      mirror V (Leaf V v) =
+      Leaf V v)
+  /\
+  (forall (V : Type)
+          (t1 t2 : binary_tree V),
+      mirror V (Node V t1 t2) =
+      Node V (mirror V t2) (mirror V t1)).
+(* end hide *)
+
+(* ***** *)
+
+(** * Exercise 9 *)
+(** ** a *)
+
+(** This proof goes mostly the same way as the one for relative number of leaves and nodes in the lecture notes. We induct on [t] and apply the hypotheses in the inductive case. We also destruct within the cases to keep the assumptions clean.
+
+    We show that the specification of the mirror function is indeed unambiguous, as proven below:
+ *)
+
+Proposition there_is_at_most_one_mirror_function :
+  forall mirror1 mirror2 : forall V : Type, binary_tree V -> binary_tree V,
+    specification_of_mirror mirror1 ->
+    specification_of_mirror mirror2 ->
+    forall (V : Type)
+           (t : binary_tree V),
+      mirror1 V t = mirror2 V t.
+Proof.
+  intros mirror1 mirror2.
+  intros S_mirror1 S_mirror2.
+  intros V t.
+  induction t as [ v | t1 IHt1 t2 IHt2 ].
+  - unfold specification_of_mirror in S_mirror1.
+    destruct S_mirror1 as [S_Leaf1 _].
+    unfold specification_of_mirror in S_mirror2.
+    destruct S_mirror2 as [S_Leaf2 _].
+    rewrite -> (S_Leaf2 V v).
+    exact (S_Leaf1 V v).
+  - unfold specification_of_mirror in S_mirror1.
+    destruct S_mirror1 as [_ S_Node1].
+    unfold specification_of_mirror in S_mirror2.
+    destruct S_mirror2 as [_ S_Node2].
+    (** Here we can do forward rewrites and end it with [reflexivity], or we can do it slightly differently and save one proof step:
+     *)
+
+    (*
+    rewrite -> (S_Node1 V t1 t2).
+    rewrite -> (S_Node2 V t1 t2).
+    rewrite -> IHt1.
+    rewrite -> IHt2.
+    reflexivity.
+     *)
+    rewrite -> (S_Node2 V t1 t2).
+    rewrite <- IHt1.
+    rewrite <- IHt2.
+    exact (S_Node1 V t1 t2).
+Qed.
+
+(* ********** *)
+
+Definition specification_of_number_of_leaves (number_of_leaves : forall V : Type, binary_tree V -> nat) : Prop :=
+  (forall (V : Type)
+          (v : V),
+      number_of_leaves V (Leaf V v) =
+      1)
+  /\
+  (forall (V : Type)
+          (t1 t2 : binary_tree V),
+      number_of_leaves V (Node V t1 t2) =
+      number_of_leaves V t1 + number_of_leaves V t2).
+
+(** ** b *)
+
+(** The other two works exactly the same as 9a, modulo the specifications and the names involved. We also reach the same conclusion: the specifications are unambiguous.
+ *)
+
+Proposition there_is_at_most_one_number_of_leaves_function :
+  forall nol1 nol2 : forall V : Type, binary_tree V -> nat,
+    specification_of_number_of_leaves nol1 ->
+    specification_of_number_of_leaves nol2 ->
+    forall (V : Type)
+           (t : binary_tree V),
+      nol1 V t = nol2 V t.
+Proof.
+  intros nol1 nol2.
+  intros S_nol1 S_nol2.
+  intros V t.
+  induction t as [ v | t1 IHt1 t2 IHt2 ].
+  - unfold specification_of_number_of_leaves in S_nol1.
+    destruct S_nol1 as [S_Leaf1 _].
+    unfold specification_of_number_of_leaves in S_nol2.
+    destruct S_nol2 as [S_Leaf2 _].
+    rewrite -> (S_Leaf2 V v).
+    exact (S_Leaf1 V v).
+  - unfold specification_of_number_of_leaves in S_nol1.
+    destruct S_nol1 as [_ S_Node1].
+    unfold specification_of_number_of_leaves in S_nol2.
+    destruct S_nol2 as [_ S_Node2].
+    rewrite -> (S_Node2 V t1 t2).
+    rewrite <- IHt1.
+    rewrite <- IHt2.
+    exact (S_Node1 V t1 t2).
+Qed.
+
+Definition specification_of_number_of_nodes (number_of_nodes : forall V : Type, binary_tree V -> nat) : Prop :=
+  (forall (V : Type)
+          (v : V),
+      number_of_nodes V (Leaf V v) =
+      0)
+  /\
+  (forall (V : Type)
+          (t1 t2 : binary_tree V),
+      number_of_nodes V (Node V t1 t2) =
+      S (number_of_nodes V t1 + number_of_nodes V t2)).
+
+(** ** c *)
+
+Proposition there_is_at_most_one_number_of_nodes_function :
+  forall non1 non2 : forall V : Type, binary_tree V -> nat,
+    specification_of_number_of_nodes non1 ->
+    specification_of_number_of_nodes non2 ->
+    forall (V : Type)
+           (t : binary_tree V),
+      non1 V t = non2 V t.
+Proof.
+  intros non1 non2.
+  intros S_non1 S_non2.
+  intros V t.
+  induction t as [ v | t1 IHt1 t2 IHt2 ].
+  - unfold specification_of_number_of_nodes in S_non1.
+    destruct S_non1 as [S_Leaf1 _].
+    unfold specification_of_number_of_nodes in S_non2.
+    destruct S_non2 as [S_Leaf2 _].
+    rewrite -> (S_Leaf2 V v).
+    exact (S_Leaf1 V v).
+  - unfold specification_of_number_of_nodes in S_non1.
+    destruct S_non1 as [_ S_Node1].
+    unfold specification_of_number_of_nodes in S_non2.
+    destruct S_non2 as [_ S_Node2].
+    rewrite -> (S_Node2 V t1 t2).
+    rewrite <- IHt1.
+    rewrite <- IHt2.
+    exact (S_Node1 V t1 t2).
+Qed.
+
+(* ********** *)
+
+(** * Conclusion
+
+By emphasizing the importance of term rewriting, this assignment moves the focus of the YSC3236 module away from the induction principle, and towards using axiomatic theories in proofs.
+
+*)
+
+(* end of week-03_induction-over-binary-trees.v *)
