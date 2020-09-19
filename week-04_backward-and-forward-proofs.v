@@ -579,8 +579,10 @@ Proof.
 
 Qed.
 
-(** ** c TODO
+(** ** c
     The two proofs Exercise 12a and Exercise 12b have already been compared.
+
+    One has repeated occurences of [H_T_implies_U (H_R_implies_T (H_Q_implies_R (H_P2_implies_Q H_P2)))], while the other does not.
  *)
 
 (** ** d
@@ -641,9 +643,11 @@ Qed.
 (** How would you prove the following propositions?
     Forward or backward?
 
-    [ladidah] has an initial hypothesis that is a disjunction, just like Exercise 12a and Exercise 12b. The term corresponding to the forward proof of Exercise 12a has repeated applications while the backward proof of Exercise 12b does not, so to avoid repeated applications, we prove [ladidah] in a backward way.
+    [ladidah] has an initial hypothesis that is a disjunction, just like Exercise 12a and Exercise 12b. The term corresponding to the forward proof of Exercise 12a has repeated applications while the backward proof of Exercise 12b does not.
 
-    This means using [destruct] as late as possible.
+    So to figure out how complex the proofs could be, we reconstruct the same term again and again by performing repeated applications, and prove [ladidah] in a forward way.
+
+    This means using [destruct] as early as possible.
  *)
 
 Proposition ladidah :
@@ -652,37 +656,47 @@ Proposition ladidah :
 Proof.
   intros P1 P2 P3 P4 Q R T U.
   intros H_P1_or_P2_or_P3_or_P4 H_P1_implies_Q H_P2_implies_Q H_P3_implies_Q H_P4_implies_Q H_Q_implies_R H_R_implies_T H_T_implies_U.
-  apply H_T_implies_U.
-  apply H_R_implies_T.
-  apply H_Q_implies_R.
-  (** Here our goal is the proposition [Q] which is the consequent of the implications of which the antecedents are each of the four disjuncts in the initial hypothesis.
-
-      As noted in Exercise 12b, we must [destruct] here.
+  (** To avoid discarding hypotheses like in Exercise 12d, we [destruct] here instead of in the [intros].
    *)
 
   destruct H_P1_or_P2_or_P3_or_P4 as [[H_P1 | H_P2] | [H_P3 | H_P4]].
-  - apply (H_P1_implies_Q H_P1).
-  - apply (H_P2_implies_Q H_P2).
-  - apply (H_P3_implies_Q H_P3).
-  - apply (H_P4_implies_Q H_P4).
+  (** Here we have four subgoals corresponding to the four disjuncts in the initial hypothesis.
+
+      In each subgoal, we must prove the proposition [U] which we must convert via three applications to [Q]. Then the subgoal [Q] is the consequent of the implications of which the antecedents are each of the four disjuncts. Then we match the goal exactly with the hypothesis corresponding to the destructed disjunct.
+   *)
+
+  - apply H_T_implies_U.
+    apply H_R_implies_T.
+    apply H_Q_implies_R.
+    apply H_P1_implies_Q.
+    exact H_P1.
+  - apply H_T_implies_U.
+    apply H_R_implies_T.
+    apply H_Q_implies_R.
+    apply H_P2_implies_Q.
+    exact H_P2.
+  - apply H_T_implies_U.
+    apply H_R_implies_T.
+    apply H_Q_implies_R.
+    apply H_P3_implies_Q.
+    exact H_P3.
+  - apply H_T_implies_U.
+    apply H_R_implies_T.
+    apply H_Q_implies_R.
+    apply H_P4_implies_Q.
+    exact H_P4.
   Show Proof.
   (** The term corresponding to this proof is:
       <<
-(fun (P1 P2 P3 P4 Q R T U : Prop)
-   (H_P1_or_P2_or_P3_or_P4 : (P1 \/ P2) \/ P3 \/ P4)
-   (H_P1_implies_Q : P1 -> Q) (H_P2_implies_Q : P2 -> Q)
-   (H_P3_implies_Q : P3 -> Q) (H_P4_implies_Q : P4 -> Q)
-   (H_Q_implies_R : Q -> R) (H_R_implies_T : R -> T)
-   (H_T_implies_U : T -> U) =>
- H_T_implies_U
-   (H_R_implies_T
-      (H_Q_implies_R
-         match H_P1_or_P2_or_P3_or_P4 with
-         | or_introl (or_introl H_P1) => H_P1_implies_Q H_P1
-         | or_introl (or_intror H_P2) => H_P2_implies_Q H_P2
-         | or_intror (or_introl H_P3) => H_P3_implies_Q H_P3
-         | or_intror (or_intror H_P4) => H_P4_implies_Q H_P4
-         end)))
+(fun (P1 P2 P3 P4 Q R T U : Prop) (H_P1_or_P2_or_P3_or_P4 : (P1 \/ P2) \/ P3 \/ P4) (H_P1_implies_Q : P1 -> Q)
+   (H_P2_implies_Q : P2 -> Q) (H_P3_implies_Q : P3 -> Q) (H_P4_implies_Q : P4 -> Q) (H_Q_implies_R : Q -> R)
+   (H_R_implies_T : R -> T) (H_T_implies_U : T -> U) =>
+ match H_P1_or_P2_or_P3_or_P4 with
+ | or_introl (or_introl H_P1) => H_T_implies_U (H_R_implies_T (H_Q_implies_R (H_P1_implies_Q H_P1)))
+ | or_introl (or_intror H_P2) => H_T_implies_U (H_R_implies_T (H_Q_implies_R (H_P2_implies_Q H_P2)))
+ | or_intror (or_introl H_P3) => H_T_implies_U (H_R_implies_T (H_Q_implies_R (H_P3_implies_Q H_P3)))
+ | or_intror (or_intror H_P4) => H_T_implies_U (H_R_implies_T (H_Q_implies_R (H_P4_implies_Q H_P4)))
+ end)
       >>
    *)
 
@@ -691,9 +705,11 @@ Qed.
 (** How would you prove the following propositions?
     Forward or backward?
 
-    [toodeloo] has a conclusion that is a conjunction, just like Exercise 9, Exercise 10, and Exercise 11. In each of these exercises, the backward proof has repeated applications while the forward proof does not, so to avoid repeated applications, we prove [toodeloo] in a forward way.
+    [toodeloo] has a conclusion that is a conjunction, just like Exercise 9, Exercise 10, and Exercise 11. In each of these exercises, the backward proof has repeated applications while the forward proof does not.
 
-    This means using [split] as late as possible.
+    So to figure out how complex the proofs could be, we reconstruct the same term again and again by performing repeated applications, and prove [toodeloo] in a forward way.
+
+    This means using [split] as early as possible.
  *)
 
 Proposition toodeloo :
@@ -701,33 +717,885 @@ Proposition toodeloo :
     P -> (P -> Q) -> (Q -> R) -> (R -> T) -> (T -> U1) -> (T -> U2) -> (T -> U3) -> (T -> U4) -> (U1 /\ U2) /\ (U3 /\ U4).
   intros P Q R T U1 U2 U3 U4.
   intros H_P H_P_implies_Q H_Q_implies_R H_R_implies_T H_T_implies_U1 H_T_implies_U2 H_T_implies_U3 H_T_implies_U4.
-  assert (H_Q := H_P_implies_Q H_P).
-  assert (H_R := H_Q_implies_R H_Q).
-  assert (H_T := H_R_implies_T H_R).
-  assert (H_U1 := H_T_implies_U1 H_T).
-  assert (H_U2 := H_T_implies_U2 H_T).
-  assert (H_U3 := H_T_implies_U3 H_T).
-  assert (H_U4 := H_T_implies_U4 H_T).
-  
-  (** The latest possible [split] is immediately after we have the four conjuncts. *)
   split.
   - split.
-    + exact H_U1.
-    + exact H_U2.
+    + apply H_T_implies_U1.
+      apply H_R_implies_T.
+      apply H_Q_implies_R.
+      apply H_P_implies_Q.
+      exact H_P.
+    + apply H_T_implies_U2.
+      apply H_R_implies_T.
+      apply H_Q_implies_R.
+      apply H_P_implies_Q.
+      exact H_P.
   - split.
-    + exact H_U3.
-    + exact H_U4.
+    + apply H_T_implies_U3.
+      apply H_R_implies_T.
+      apply H_Q_implies_R.
+      apply H_P_implies_Q.
+      exact H_P.
+    + apply H_T_implies_U4.
+      apply H_R_implies_T.
+      apply H_Q_implies_R.
+      apply H_P_implies_Q.
+      exact H_P.
+  Show Proof.
+  (** The term corresponding to this proof is:
+      <<
+(fun (P Q R T U1 U2 U3 U4 : Prop) (H_P : P) (H_P_implies_Q : P -> Q) (H_Q_implies_R : Q -> R)
+   (H_R_implies_T : R -> T) (H_T_implies_U1 : T -> U1) (H_T_implies_U2 : T -> U2) (H_T_implies_U3 : T -> U3)
+   (H_T_implies_U4 : T -> U4) =>
+ conj
+   (conj (H_T_implies_U1 (H_R_implies_T (H_Q_implies_R (H_P_implies_Q H_P))))
+      (H_T_implies_U2 (H_R_implies_T (H_Q_implies_R (H_P_implies_Q H_P)))))
+   (conj (H_T_implies_U3 (H_R_implies_T (H_Q_implies_R (H_P_implies_Q H_P))))
+      (H_T_implies_U4 (H_R_implies_T (H_Q_implies_R (H_P_implies_Q H_P))))))
+      >>
+   *)
 Qed.
 
 (** How complex could the size of such proofs be
     (relative to the number of hypotheses about P1, P2, P3, etc.
     and to the number of conclusions about U1, U2, U3, etc.)?
 
-    We have delayed as late as possible the proof of the disjunctive hypothesis, so that [destruct]ing the disjunctive hypothesis only requires us to, for each subgoal, apply one hypothesis to another. So, the complexity of the size of the proof relative to the number of hypotheses about [P1], [P2], [P3], [P4], is the complexity of the size of the remaining proof, which has linear complexity.
+    We have brought forth as early as possible the proof of the disjunctive hypothesis, so that [destruct]ing the disjunctive hypothesis with [n] disjuncts requires us to, for each of the [n] subgoals, apply [m] implication hypotheses from the disjunctive hypothesis to the conclusion of the proposition. So, the complexity of the size of the proof relative to the number of hypotheses about [P1], [P2], [P3], [P4] (this number of hypotheses is [n]), is O(n), which is linear complexity.
 
-    We have delayed as late as possible the proof of the conjunctive hypothesis, so that [split]ting the conjunctive hypothesis only requires us to, for each subgoal, say that the subgoal exactly matches one hypothesis. So, the complexity of the size of the proof relative to the number of hypotheses about [U1], [U2], [U3], [U4], is the complexity of the size of the remaining proof, which has linear complexity.
+    We have brought forth as early as possible the proof of the conjunctive hypothesis, so that [split]ting the conjunctive hypothesis with [n] conjuncts requires us to, for each of the [n] subgoals, apply [m] implication hypotheses from the conjunctive hypothesis to the conclusion of the proposition. So, the complexity of the size of the proof relative to the number of hypotheses about [U1], [U2], [U3], [U4] (this number of hypotheses is [n]), is O(n), which is linear complexity.
  *)
 
 (* ***********)
 
 (* end of week-04_backward-and-forward-proofs.v *)
+
+(* week-04_equational-reasoning-about-arithmetical-functions.v *)
+(* FPP 2020 - YSC3236 2020-2011, Sem1 *)
+(* Olivier Danvy <danvy@yale-nus.edu.sg> *)
+(* Version of 05 Sep 2020 *)
+
+(* ********** *)
+
+(* Your name: Koo Zhengqun
+   Your e-mail address: zhengqun.koo@u.nus.edu
+   Your student number: A0164207L
+ *)
+
+(* Your name: Bobbie Soedirgo
+   Your e-mail address: sram-b@comp.nus.edu.sg
+   Your student number: A0181001A
+ *)
+
+(* Your name: Kuan Wei Heng
+   Your e-mail address: kuanwh@u.nus.edu
+   Your student number: A0121712X
+ *)
+
+(* ********** *)
+
+(** begin hide **)
+
+(* Paraphernalia: *)
+
+Ltac fold_unfold_tactic name := intros; unfold name; fold name; reflexivity.
+
+Require Import Arith Bool.
+
+Notation "A =n= B" :=
+  (beq_nat A B) (at level 70, right associativity).
+
+(* ********** *)
+
+(* Two implementations of the addition function *)
+
+(* ***** *)
+
+(* Unit tests *)
+
+Definition test_add (candidate: nat -> nat -> nat) : bool :=
+  (candidate 0 0 =n= 0)
+  &&
+  (candidate 0 1 =n= 1)
+  &&
+  (candidate 1 0 =n= 1)
+  &&
+  (candidate 1 1 =n= 2)
+  &&
+  (candidate 1 2 =n= 3)
+  &&
+  (candidate 2 1 =n= 3)
+  &&
+  (candidate 2 2 =n= 4)
+  (* etc. *)
+  .
+
+(* ***** *)
+
+(* Recursive implementation of the addition function *)
+
+Fixpoint add_v1 (i j : nat) : nat :=
+  match i with
+  | O =>
+    j
+  | S i' =>
+    S (add_v1 i' j)
+  end.
+
+Compute (test_add add_v1).
+
+Lemma fold_unfold_add_v1_O :
+  forall j : nat,
+    add_v1 O j =
+    j.
+Proof.
+  fold_unfold_tactic add_v1.
+Qed.
+
+Lemma fold_unfold_add_v1_S :
+  forall i' j : nat,
+    add_v1 (S i') j =
+    S (add_v1 i' j).
+Proof.
+  fold_unfold_tactic add_v1.
+Qed.
+
+(* ***** *)
+
+(* Tail-recursive implementation of the addition function *)
+
+Fixpoint add_v2 (i j : nat) : nat :=
+  match i with
+    | O => j
+    | S i' => add_v2 i' (S j)
+  end.
+
+Compute (test_add add_v2).
+
+Lemma fold_unfold_add_v2_O :
+  forall j : nat,
+    add_v2 O j =
+    j.
+Proof.
+  fold_unfold_tactic add_v2.
+Qed.
+
+Lemma fold_unfold_add_v2_S :
+  forall i' j : nat,
+    add_v2 (S i') j =
+    add_v2 i' (S j).
+Proof.
+  fold_unfold_tactic add_v2.
+Qed.
+
+(* ********** *)
+
+(* Equivalence of add_v1 and add_v2 *)
+
+(* ***** *)
+
+(* The master lemma: *)
+
+Lemma about_add_v2 :
+  forall i j : nat,
+    add_v2 i (S j) = S (add_v2 i j).
+Proof.
+  intro i.
+  induction i as [ | i' IHi'].
+
+  - intro j.
+    rewrite -> (fold_unfold_add_v2_O j).
+    exact (fold_unfold_add_v2_O (S j)).
+
+  - intro j.
+    rewrite -> (fold_unfold_add_v2_S i' (S j)).
+    rewrite -> (fold_unfold_add_v2_S i' j).
+    Check (IHi' (S j)).
+    exact (IHi' (S j)).
+Qed.
+
+(* ***** *)
+
+(* The main theorem: *)
+
+Theorem equivalence_of_add_v1_and_add_v2 :
+  forall i j : nat,
+    add_v1 i j = add_v2 i j.
+Proof.
+  intro i.
+  induction i as [ | i' IHi'].
+
+  - intro j.
+    rewrite -> (fold_unfold_add_v2_O j).
+    exact (fold_unfold_add_v1_O j).
+
+  - intro j.
+    rewrite -> (fold_unfold_add_v1_S i' j).
+    rewrite -> (fold_unfold_add_v2_S i' j).
+    rewrite -> (IHi' j).
+    symmetry.
+    exact (about_add_v2 i' j).
+Qed.
+
+(* In the next few exercises, we prove some basic properties of addition.
+ Having established the equivalence of both implementations of addition, proving
+ a property for either automatically gives us a proof for the other. This has
+ the advantage of making the proofs easier since we have the flexibility to pick
+ the implementation that best lends itself to proving the property in question.
+ Nonetheless, we will respect the learning objective of these exercises prove
+ the properties for both implementations without invoking the equivalence. *)
+
+(* ********** *)
+
+(* Neutral (identity) element for addition *)
+
+(* ***** *)
+
+Property O_is_left_neutral_wrt_add_v1 :
+  forall y : nat,
+    add_v1 0 y = y.
+Proof.
+  exact fold_unfold_add_v1_O.
+Qed.
+
+(* ***** *)
+
+Property O_is_left_neutral_wrt_add_v2 :
+  forall y : nat,
+    add_v2 0 y = y.
+Proof.
+  exact fold_unfold_add_v2_O.
+Qed.
+
+(* ***** *)
+
+Property O_is_right_neutral_wrt_add_v1 :
+  forall x : nat,
+    add_v1 x 0 = x.
+Proof.
+  induction x as [| x' IHx'].
+  - exact (fold_unfold_add_v1_O 0).
+  - unfold add_v1. fold add_v1.
+    rewrite -> IHx'.
+    reflexivity.
+Qed.
+
+(* The 'master lemma' proven earlier turns out to be very useful in our proofs.
+When proving the inductive case, we always start with an extra successor call on
+both sides of the subgoal. In order to apply the inductive hypothesis, we have
+to move the successor call to the top level of the expression tree. This lemma
+lets us do that. *)
+
+(* We will give it a more meaningful name. *)
+Notation add_succ_r_v2 := about_add_v2.
+
+(* We will also prove an equivalent for [add_v1]. *)
+Lemma add_succ_r_v1 :
+  forall i j : nat,
+    add_v1 i (S j) = S (add_v1 i j).
+Proof.
+  induction  i as [| i' IHi'].
+  - intro j.
+    rewrite -> (fold_unfold_add_v1_O j).
+    exact (fold_unfold_add_v1_O (S j)).
+  - intro j.
+    rewrite -> (fold_unfold_add_v1_S i' (S j)).
+    rewrite -> (fold_unfold_add_v1_S i' j).
+    rewrite -> (IHi' j).
+    reflexivity.
+Qed.
+
+Property O_is_right_neutral_wrt_add_v2 :
+  forall x : nat,
+    add_v2 x 0 = x.
+Proof.
+  induction x as [| x' IHx'].
+  - exact (fold_unfold_add_v2_O 0).
+  - unfold add_v2. fold add_v2.
+    rewrite <- IHx' at 2.
+    exact (add_succ_r_v2 x' 0).
+Qed.
+
+(* ********** *)
+
+(* Associativity of addition *)
+
+(* ***** *)
+
+Property add_v1_is_associative :
+  forall x y z : nat,
+    add_v1 x (add_v1 y z) = add_v1 (add_v1 x y) z.
+Proof.
+  induction x as [| x' IHx'].
+  - fold_unfold_tactic add_v1.
+  - intros y z.
+    unfold add_v1. fold add_v1.
+    rewrite <- (IHx' y z).
+    reflexivity.
+Qed.
+
+(* ***** *)
+
+Property add_v2_is_associative :
+  forall x y z : nat,
+    add_v2 x (add_v2 y z) = add_v2 (add_v2 x y) z.
+Proof.
+  induction x as [| x' IHx'].
+  - fold_unfold_tactic add_v2.
+  - intros y z.
+    unfold add_v2. fold add_v2.
+    rewrite -> (add_succ_r_v2 x' (add_v2 y z)).
+    rewrite (IHx' y z).
+    rewrite -> (add_succ_r_v2 x' y).
+    unfold add_v2. fold add_v2.
+    rewrite -> (add_succ_r_v2 (add_v2 x' y) z).
+    reflexivity.
+Qed.
+
+(* ********** *)
+
+(* Commutativity of addition *)
+
+(* ***** *)
+
+Property add_v1_is_commutative :
+  forall x y : nat,
+    add_v1 x y = add_v1 y x.
+Proof.
+  induction x as [| x' IHx'].
+  - intro y.
+    rewrite -> (O_is_right_neutral_wrt_add_v1 y).
+    rewrite -> (O_is_left_neutral_wrt_add_v1 y).
+    reflexivity.
+  - intro y.
+    rewrite -> (fold_unfold_add_v1_S x' y).
+    rewrite -> (IHx' y).
+    symmetry.
+    exact (add_succ_r_v1 y x').
+Qed.
+
+(* ***** *)
+
+Property add_v2_is_commutative :
+  forall x y : nat,
+    add_v2 x y = add_v2 y x.
+Proof.
+  induction x as [| x' IHx'].
+  - intro y.
+    rewrite -> (O_is_right_neutral_wrt_add_v2 y).
+    rewrite -> (O_is_left_neutral_wrt_add_v2 y).
+    reflexivity.
+  - intro y.
+    rewrite -> (fold_unfold_add_v2_S x' y).
+    rewrite -> (add_succ_r_v2 x' y).
+    rewrite -> (add_succ_r_v2 y x').
+    rewrite -> (IHx' y).
+    reflexivity.
+Qed.
+
+(* ********** *)
+
+(* Four implementations of the multiplication function *)
+
+(* ***** *)
+
+(* Unit tests *)
+
+Definition test_mul (candidate: nat -> nat -> nat) : bool :=
+  (candidate 0 0 =n= 0)
+  &&
+  (candidate 0 1 =n= 0)
+  &&
+  (candidate 1 0 =n= 0)
+  &&
+  (candidate 1 1 =n= 1)
+  &&
+  (candidate 1 2 =n= 2)
+  &&
+  (candidate 2 1 =n= 2)
+  &&
+  (candidate 2 2 =n= 4)
+  &&
+  (candidate 2 3 =n= 6)
+  &&
+  (candidate 3 2 =n= 6)
+  &&
+  (candidate 6 4 =n= 24)
+  &&
+  (candidate 4 6 =n= 24)
+  (* etc. *)
+  .
+
+(* ***** *)
+
+(* Recursive implementation of the multiplication function, using add_v1 *)
+
+Fixpoint mul_v11 (x y : nat) : nat :=
+  match x with
+  | O =>
+    O
+  | S x' =>
+    add_v1 (mul_v11 x' y) y
+  end.
+
+Compute (test_mul mul_v11).
+
+Lemma fold_unfold_mul_v11_O :
+  forall y : nat,
+    mul_v11 O y =
+    O.
+Proof.
+  fold_unfold_tactic mul_v11.
+Qed.
+
+Lemma fold_unfold_mul_v11_S :
+  forall x' y : nat,
+    mul_v11 (S x') y =
+    add_v1 (mul_v11 x' y) y.
+Proof.
+  fold_unfold_tactic mul_v11.
+Qed.
+
+(* ***** *)
+
+(* Recursive implementation of the multiplication function, using add_v2 *)
+
+Fixpoint mul_v12 (x y : nat) : nat :=
+  match x with
+  | O =>
+    O
+  | S x' =>
+    add_v2 (mul_v12 x' y) y
+  end.
+
+Compute (test_mul mul_v11).
+
+Lemma fold_unfold_mul_v12_O :
+  forall y : nat,
+    mul_v12 O y =
+    O.
+Proof.
+  fold_unfold_tactic mul_v12.
+Qed.
+
+Lemma fold_unfold_mul_v12_S :
+  forall x' y : nat,
+    mul_v12 (S x') y =
+    add_v2 (mul_v12 x' y) y.
+Proof.
+  fold_unfold_tactic mul_v12.
+Qed.
+
+(** end hide **)
+
+(* ***** *)
+
+(** ** Exercise 27 *)
+
+(* Tail-recursive implementation of the multiplication function, using add_v1 *)
+
+Fixpoint mul_v21_aux (x y a : nat) : nat :=
+  match x with
+  | O => a
+  | S x' => mul_v21_aux x' y (add_v1 y a)
+  end.
+
+Definition mul_v21 (x y : nat) : nat :=
+  mul_v21_aux x y 0.
+
+Compute (test_mul mul_v21).
+
+Lemma fold_unfold_mul_v21_aux_O :
+  forall y a : nat , mul_v21_aux 0 y a = a.
+Proof.
+  fold_unfold_tactic mul_v21_aux.
+Qed.
+
+Lemma fold_unfold_mul_v21_aux_S :
+  forall x' y a : nat, mul_v21_aux (S x') y a = mul_v21_aux x' y (add_v1 y a).
+Proof.
+  fold_unfold_tactic mul_v21_aux.
+Qed.
+
+(* ***** *)
+
+(** ** Exercise 28 *)
+
+(* Tail-recursive implementation of the multiplication function, using add_v2 *)
+
+Fixpoint mul_v22_aux (x y a : nat) : nat :=
+  match x with
+  | O => a
+  | S x' => mul_v22_aux x' y (add_v2 y a)
+  end.
+
+Definition mul_v22 (x y : nat) : nat :=
+  mul_v22_aux x y 0.
+
+Lemma fold_unfold_mul_v22_aux_O :
+  forall y a : nat, mul_v22_aux 0 y a = a.
+Proof.
+  fold_unfold_tactic mul_v22_aux.
+Qed.
+
+Lemma fold_unfold_mul_v22_aux_S :
+  forall x' y a : nat, mul_v22_aux (S x') y a = mul_v22_aux x' y (add_v2 y a).
+Proof.
+  fold_unfold_tactic mul_v22_aux.
+Qed.
+
+(* ********** *)
+
+(** ** Exercise 29 *)
+
+(* Equivalence of mul_v11, mul_v12, mul_v21, and mul_v22 *)
+
+(* ***** *)
+
+Theorem equivalence_of_mul_v11_and_mul_v12 :
+  forall i j : nat,
+    mul_v11 i j = mul_v12 i j.
+Proof.
+  induction i as [| i' IHi'].
+  - intro j.
+    rewrite -> (fold_unfold_mul_v11_O j).
+    exact (fold_unfold_mul_v12_O j).
+  - intro j.
+    rewrite -> (fold_unfold_mul_v11_S i' j).
+    rewrite -> (fold_unfold_mul_v12_S i' j).
+    rewrite -> (IHi' j).
+    exact (equivalence_of_add_v1_and_add_v2 (mul_v12 i' j) j).
+Qed.
+
+(* ***** *)
+
+(* The proof for the equivalence of [mul_v11] and [mul_v21] requires the
+following lemma, which lets us decompose the accumulator of [mul_v21_aux] as a
+sum of two naturals and have the sum evaluate after the product. *)
+
+Lemma mul_v21_aux_accumulator_distributes :
+  forall i j a b : nat, add_v1 (mul_v21_aux i j a) b = mul_v21_aux i j (add_v1 a b).
+Proof.
+  induction i as [| i' IHi'].
+  - intros j a b.
+    rewrite -> (fold_unfold_mul_v21_aux_O j a).
+    rewrite -> (fold_unfold_mul_v21_aux_O j (add_v1 a b)).
+    reflexivity.
+  - intros j a b.
+    rewrite -> (fold_unfold_mul_v21_aux_S i' j a).
+    rewrite -> (fold_unfold_mul_v21_aux_S i' j (add_v1 a b)).
+    rewrite <- (IHi' j j a).
+    rewrite <- (IHi' j j (add_v1 a b)).
+    rewrite -> (add_v1_is_associative (mul_v21_aux i' j j) a b).
+    reflexivity.
+Qed.
+
+Theorem equivalence_of_mul_v11_and_mul_v21 :
+  forall i j : nat,
+    mul_v11 i j = mul_v21 i j.
+Proof.
+  unfold mul_v21.
+  induction i as [| i' IHi'].
+  - intro j.
+    rewrite -> (fold_unfold_mul_v11_O j).
+    exact (fold_unfold_mul_v21_aux_O j 0).
+  - intro j.
+    rewrite -> (fold_unfold_mul_v11_S i' j).
+    Check fold_unfold_mul_v21_aux_S.
+    rewrite -> (fold_unfold_mul_v21_aux_S i' j).
+    rewrite -> (IHi' j).
+    rewrite -> (add_v1_is_commutative j 0).
+    exact (mul_v21_aux_accumulator_distributes i' j 0 j).
+Qed.
+
+(* ***** *)
+
+(* The previous proof can also be directly translated to a proof for the
+equivalence of [mul_v12] and [mul_v22] since these two pairs of implementations
+are only different in the implementation of addition used. *)
+
+Lemma mul_v22_aux_accumulator_distributes :
+  forall i j a b : nat, add_v2 (mul_v22_aux i j a) b = mul_v22_aux i j (add_v2 a b).
+Proof.
+  induction i as [| i' IHi'].
+  - intros j a b.
+    rewrite -> (fold_unfold_mul_v22_aux_O j a).
+    rewrite -> (fold_unfold_mul_v22_aux_O j (add_v2 a b)).
+    reflexivity.
+  - intros j a b.
+    rewrite -> (fold_unfold_mul_v22_aux_S i' j a).
+    rewrite -> (fold_unfold_mul_v22_aux_S i' j (add_v2 a b)).
+    rewrite <- (IHi' j j a).
+    rewrite <- (IHi' j j (add_v2 a b)).
+    rewrite -> (add_v2_is_associative (mul_v22_aux i' j j) a b).
+    reflexivity.
+Qed.
+
+Theorem equivalence_of_mul_v12_and_mul_v22 :
+  forall i j : nat,
+    mul_v12 i j = mul_v22 i j.
+Proof.
+  unfold mul_v22.
+  induction i as [| i' IHi'].
+  - intro j.
+    rewrite -> (fold_unfold_mul_v12_O j).
+    exact (fold_unfold_mul_v22_aux_O j 0).
+  - intro j.
+    rewrite -> (fold_unfold_mul_v12_S i' j).
+    Check fold_unfold_mul_v22_aux_S.
+    rewrite -> (fold_unfold_mul_v22_aux_S i' j).
+    rewrite -> (IHi' j).
+    rewrite -> (add_v2_is_commutative j 0).
+    exact (mul_v22_aux_accumulator_distributes i' j 0 j).
+Qed.
+
+(* ***** *)
+
+(* The previous three proofs are sufficient to demonstrate the equivalence of
+all four implementations. For completeness, we will also prove the equivalence
+of [mul_v21] and [mul_v22]. *)
+
+Theorem equivalence_of_mul_v21_and_mul_v22 :
+  forall i j : nat,
+    mul_v21 i j = mul_v22 i j.
+Proof.
+  unfold mul_v21.
+  unfold mul_v22.
+  induction i as [| i' IHi'].
+  - intro j.
+    rewrite -> (fold_unfold_mul_v21_aux_O j 0).
+    exact (fold_unfold_mul_v22_aux_O j 0).
+  - intro j.
+    Check fold_unfold_mul_v21_aux_S.
+    rewrite -> (fold_unfold_mul_v21_aux_S i' j).
+    rewrite -> (fold_unfold_mul_v22_aux_S i' j).
+    rewrite -> (add_v1_is_commutative j 0).
+    rewrite -> (add_v2_is_commutative j 0).
+    Check (mul_v22_aux_accumulator_distributes).
+    rewrite <- (mul_v21_aux_accumulator_distributes i' j 0 j).
+    rewrite <- (mul_v22_aux_accumulator_distributes i' j 0 j).
+    rewrite -> (IHi' j).
+    exact (equivalence_of_add_v1_and_add_v2 (mul_v22_aux i' j 0) j).
+Qed.
+
+(** begin hide **)
+
+(* ********** *)
+
+(* 0 is left absorbing with respect to multiplication *)
+
+(* ***** *)
+
+Property O_is_left_absorbing_wrt_mul_v11 :
+  forall y : nat,
+    mul_v11 0 y = 0.
+Proof.
+Abort.
+
+(* ***** *)
+
+Property O_is_left_absorbing_wrt_mul_v12 :
+  forall y : nat,
+    mul_v12 0 y = 0.
+Proof.
+Abort.
+
+(* ***** *)
+
+(*
+Property O_is_left_absorbing_wrt_mul_v21 :
+  forall y : nat,
+    mul_v21 0 y = 0.
+Proof.
+Abort.
+*)
+
+(* ***** *)
+
+(*
+Property O_is_left_absorbing_wrt_mul_v22 :
+  forall y : nat,
+    mul_v22 0 y = 0.
+Proof.
+Abort.
+*)
+
+(* ********** *)
+
+(* 1 is left neutral with respect to multiplication *)
+
+(* ***** *)
+
+Property SO_is_left_neutral_wrt_mul_v11 :
+  forall y : nat,
+    mul_v11 1 y = y.
+Proof.
+Abort.
+
+(* ***** *)
+
+Property SO_is_left_neutral_wrt_mul_v12 :
+  forall y : nat,
+    mul_v12 1 y = y.
+Proof.
+Abort.
+
+(* ***** *)
+
+(*
+Property SO_is_left_neutral_wrt_mul_v21 :
+  forall y : nat,
+    mul_v21 1 y = y.
+Proof.
+Abort.
+*)
+
+(* ***** *)
+
+(*
+Property SO_is_left_neutral_wrt_mul_v22 :
+  forall y : nat,
+    mul_v22 1 y = y.
+Proof.
+Abort.
+*)
+
+(* ********** *)
+
+(* 0 is right absorbing with respect to multiplication *)
+
+(* ***** *)
+
+Property O_is_right_absorbing_wrt_mul_v11 :
+  forall x : nat,
+    mul_v11 x 0 = 0.
+Proof.
+Abort.
+
+(* ***** *)
+
+Property O_is_right_absorbing_wrt_mul_v12 :
+  forall x : nat,
+    mul_v12 x 0 = 0.
+Proof.
+Abort.
+
+(* ***** *)
+
+(*
+Property O_is_right_absorbing_wrt_mul_v21 :
+  forall x : nat,
+    mul_v21 x 0 = 0.
+Proof.
+Abort.
+*)
+
+(* ***** *)
+
+(*
+Property O_is_right_absorbing_wrt_mul_v22 :
+  forall x : nat,
+    mul_v22 x 0 = 0.
+Proof.
+Abort.
+*)
+
+(* ********** *)
+
+(* 1 is right neutral with respect to multiplication *)
+
+(* ***** *)
+
+Property SO_is_right_neutral_wrt_mul_v11 :
+  forall x : nat,
+    mul_v11 x 1 = x.
+Proof.
+Abort.
+
+(* ***** *)
+
+Property SO_is_right_neutral_wrt_mul_v12 :
+  forall x : nat,
+    mul_v12 x 1 = x.
+Proof.
+Abort.
+
+(* ***** *)
+
+(*
+Property SO_is_right_neutral_wrt_mul_v21 :
+  forall x : nat,
+    mul_v21 x 1 = x.
+Proof.
+Abort.
+*)
+
+(* ***** *)
+
+(*
+Property SO_is_right_neutral_wrt_mul_v22 :
+  forall x : nat,
+    mul_v22 x 1 = x.
+Proof.
+Abort.
+*)
+
+(* ********** *)
+
+(* Multiplication is right-distributive over addition *)
+
+(* ***** *)
+
+(* ... *)
+
+(* ********** *)
+
+(* Multiplication is associative *)
+
+(* ***** *)
+
+Property mul_v11_is_associative :
+  forall x y z : nat,
+    mul_v11 x (mul_v11 y z) = mul_v11 (mul_v11 x y) z.
+Proof.
+Abort.
+
+(* ***** *)
+
+Property mul_v12_is_associative :
+  forall x y z : nat,
+    mul_v12 x (mul_v12 y z) = mul_v12 (mul_v12 x y) z.
+Proof.
+Abort.
+
+(* ***** *)
+
+(*
+Property mul_v21_is_associative :
+  forall x y z : nat,
+    mul_v21 x (mul_v21 y z) = mul_v21 (mul_v21 x y) z.
+Proof.
+Abort.
+*)
+
+(* ***** *)
+
+(*
+Property mul_v22_is_associative :
+  forall x y z : nat,
+    mul_v22 x (mul_v22 y z) = mul_v22 (mul_v22 x y) z.
+Proof.
+Abort.
+*)
+
+(* ********** *)
+
+(* Multiplication is left-distributive over addition *)
+
+(* ***** *)
+
+(* ... *)
+
+(* ********** *)
+
+(** end hide **)
+
+(* end of week-04_equational-reasoning-about-arithmetical-functions.v *)
