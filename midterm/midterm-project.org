@@ -1,0 +1,21 @@
+* Introduction
+* Exercise 0
+
+It helped to refer back to L6's proving soundness and completeness for equality predicates. Overall, this has similar proof steps to but somewhat easier than the proof for binary tree equality--some subgoals are finished with one-line ~reflexivity~ / ~discriminate~.
+
+For the completeness part, the last subgoal was a bit of a pain, as I can't seem to fully apply ~andb_true_intro~. It was left not fully applied in the ~.v~ file.
+* Exercise 1
+
+When proving that ~length_v1~ satisfies the specification, I used a eureka lemma to handle the inductive case. This wasn't needed in ~length_v0~ because the specification's form mimics it rather than ~length_v1~.
+* Exercise 2
+
+a. As mentioned in the lecture notes, swapping the argument works.
+b. I initially did induction on ~n~ as well, but it turns out the induction hypothesis wasn't useful.
+c. For this one, I'm inducting on ~n~.
+d. ~list_nth~ and ~nat_nth~ are equivalent, modulo the order of arguments.
+* Exercise 3
+* Exercise 4
+* Exercise 5
+* Exercise 7
+* Exercise 8
+* Conclusion

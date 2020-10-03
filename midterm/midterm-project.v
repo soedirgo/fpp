@@ -121,7 +121,22 @@ Theorem soundness_of_equality_over_lists :
       eqb_list V eqb_V v1s v2s = true ->
       v1s = v2s.
 Proof.
-Abort.
+  intros V eqb_V S_eqb_V v1s.
+  induction v1s as [| v1 v1s' IHv1s'].
+  - intros [| v2 v2s'] H_eqb.
+    + reflexivity.
+    + rewrite -> (fold_unfold_eqb_list_nil V eqb_V (v2 :: v2s')) in H_eqb.
+      discriminate H_eqb.
+  - intros [| v2 v2s'] H_eqb.
+    + rewrite -> (fold_unfold_eqb_list_cons V eqb_V v1 v1s' nil) in H_eqb.
+      discriminate H_eqb.
+    + rewrite -> (fold_unfold_eqb_list_cons V eqb_V v1 v1s' (v2 :: v2s')) in H_eqb.
+      Check andb_prop.
+      destruct (andb_prop (eqb_V v1 v2) (eqb_list V eqb_V v1s' v2s') H_eqb) as [H_eqb_H H_eqb_T].
+      rewrite -> (S_eqb_V v1 v2 H_eqb_H).
+      rewrite -> (IHv1s' v2s' H_eqb_T).
+      reflexivity.
+Qed.
 
 Theorem completeness_of_equality_over_lists :
   forall (V : Type)
@@ -132,7 +147,25 @@ Theorem completeness_of_equality_over_lists :
       v1s = v2s ->
       eqb_list V eqb_V v1s v2s = true.
 Proof.
-Abort.
+  intros V eqb_V C_eqb_V v1s.
+  induction v1s as [| v1 v1s' IHv1s'].
+  - intros [| v2 v2s'] H_eq.
+    + exact (fold_unfold_eqb_list_nil V eqb_V nil).
+    + discriminate H_eq.
+  - intros [| v2 v2s'] H_eq.
+    + discriminate H_eq.
+    + rewrite -> (fold_unfold_eqb_list_cons V eqb_V v1 v1s' (v2 :: v2s')).
+      Search (_ -> _ && _ = true).
+      (* TODO *)
+      apply andb_true_intro.
+      split.
+      * apply (C_eqb_V v1 v2).
+        injection H_eq as H_eq_H _.
+        exact H_eq_H.
+      * apply (IHv1s' v2s').
+        injection H_eq as _ H_eq_T.
+        exact H_eq_T.
+Qed.
 
 (* ********** *)
 
@@ -240,26 +273,68 @@ Qed.
 
 (* Implement the length function using an accumulator. *)
 
-(*
-Fixpoint length_v1_aux ... :=
-  ...
+Fixpoint length_v1_aux (V : Type) (vs : list V) (a : nat) : nat :=
+  match vs with
+    | nil =>
+      a
+    | _ :: vs' =>
+      length_v1_aux V vs' (S a)
+  end.
 
 Definition length_v1 (V : Type) (vs : list V) : nat :=
-  ... length_v1_aux ...
+  length_v1_aux V vs O.
 
 Compute (test_length length_v1).
 
 Lemma fold_unfold_length_v1_aux_nil :
-  ...
+  forall (V : Type)
+    (a : nat),
+    length_v1_aux V nil a =
+    a.
+Proof.
+  fold_unfold_tactic length_v1_aux.
+Qed.
 
 Lemma fold_unfold_length_v1_aux_cons :
-  ...
+  forall (V : Type)
+    (v : V)
+    (vs' : list V)
+    (a : nat),
+    length_v1_aux V (v :: vs') a =
+    length_v1_aux V vs' (S a).
+Proof.
+  fold_unfold_tactic length_v1_aux.
+Qed.
+
+Lemma about_length_v1_aux :
+  forall (V : Type)
+    (vs : list V)
+    (a : nat),
+    length_v1_aux V vs (S a) = S (length_v1_aux V vs a).
+Proof.
+  intros V vs.
+  induction vs as [| v vs' IHvs'].
+  - intro a.
+    rewrite -> (fold_unfold_length_v1_aux_nil V a).
+    exact (fold_unfold_length_v1_aux_nil V (S a)).
+  - intro a.
+    rewrite -> (fold_unfold_length_v1_aux_cons V v vs' (S a)).
+    rewrite -> (fold_unfold_length_v1_aux_cons V v vs' a).
+    exact (IHvs' (S a)).
+Qed.
 
 Theorem length_v1_satisfies_the_specification_of_length :
   specification_of_length length_v1.
 Proof.
-  ...
-*)
+  unfold specification_of_length, length_v1.
+  split.
+  - intro V.
+    exact (fold_unfold_length_v1_aux_nil V O).
+  - intros V v vs'.
+    rewrite -> (fold_unfold_length_v1_aux_cons V v vs' O).
+    (* Eureka! length_v1_aux V vs' 1 = S (length_v1_aux V vs' O) *)
+    exact (about_length_v1_aux V vs' O).
+Qed.
 
 (* ********** *)
 
@@ -388,12 +463,14 @@ Qed.
       and verify that it passes this other test.
 *)
 
+Compute (test_nat_nth (fun (V : Type) (n : nat) (vs : list V) => list_nth V vs n)).
+Compute (test_list_nth (fun (V : Type) (vs : list V) (n : nat) => nat_nth V n vs)).
+
 (*
    b. prove that if, given a list and an index, list_nth yields a result,
       then given this index and this list, nat_nth yields the same result
 *)
 
-(*
 Proposition list_nth_implies_nat_nth :
   forall (V : Type)
          (vs : list V)
@@ -402,15 +479,51 @@ Proposition list_nth_implies_nat_nth :
     list_nth V vs n = ov ->
     nat_nth V n vs = ov.
 Proof.
-  ...
-*)
+  intros V vs.
+  induction vs as [| v vs'].
+  - intros [| n'] ov H_list.
+    + rewrite -> (fold_unfold_list_nth_nil V O) in H_list.
+      rewrite -> (fold_unfold_nat_nth_O V nil).
+      exact (H_list).
+    + rewrite -> (fold_unfold_list_nth_nil V (S n')) in H_list.
+      rewrite -> (fold_unfold_nat_nth_S V n' nil).
+      exact (H_list).
+  - intro n.
+    induction n as [| n' IHn'].
+    + intros ov H_list.
+      rewrite -> (fold_unfold_list_nth_cons V v vs' O) in H_list.
+      rewrite -> (fold_unfold_nat_nth_O V (v :: vs')).
+      exact (H_list).
+    + intros ov H_list.
+      rewrite -> (fold_unfold_list_nth_cons V v vs' (S n')) in H_list.
+      rewrite -> (fold_unfold_nat_nth_S V n' (v :: vs')).
+      exact (IHvs' n' ov H_list).
+
+  Restart.
+
+  intros V vs.
+  induction vs as [| v vs' IHvs'].
+  - intros [| n'] ov H_list.
+    + rewrite -> (fold_unfold_list_nth_nil V O) in H_list.
+      rewrite -> (fold_unfold_nat_nth_O V nil).
+      exact (H_list).
+    + rewrite -> (fold_unfold_list_nth_nil V (S n')) in H_list.
+      rewrite -> (fold_unfold_nat_nth_S V n' nil).
+      exact (H_list).
+  - intros [| n'] ov H_list.
+    + rewrite -> (fold_unfold_list_nth_cons V v vs' O) in H_list.
+      rewrite -> (fold_unfold_nat_nth_O V (v :: vs')).
+      exact (H_list).
+    + rewrite -> (fold_unfold_list_nth_cons V v vs' (S n')) in H_list.
+      rewrite -> (fold_unfold_nat_nth_S V n' (v :: vs')).
+      exact (IHvs' n' ov H_list).
+Qed.
 
 (*
    c. prove that if, given an index and a list, nat_nth yields a result,
       then given this list and this index, list_nth yields the same result
 *)
 
-(*
 Proposition nat_nth_implies_list_nth :
   forall (V : Type)
          (n : nat)
@@ -419,11 +532,28 @@ Proposition nat_nth_implies_list_nth :
     nat_nth V n vs = ov ->
     list_nth V vs n = ov.
 Proof.
-  ...
-*)
+  intros V n.
+  induction n as [| n' IHn'].
+  - intros [| v vs'] ov H_nat.
+    + rewrite -> (fold_unfold_nat_nth_O V nil) in H_nat.
+      rewrite -> (fold_unfold_list_nth_nil V O).
+      exact (H_nat).
+    + rewrite -> (fold_unfold_nat_nth_O V (v :: vs')) in H_nat.
+      rewrite -> (fold_unfold_list_nth_cons V v vs' O).
+      exact (H_nat).
+  - intros [| v vs'] ov H_nat.
+    + rewrite -> (fold_unfold_nat_nth_S V n' nil) in H_nat.
+      rewrite -> (fold_unfold_list_nth_nil V (S n')).
+      exact (H_nat).
+    + rewrite -> (fold_unfold_nat_nth_S V n' (v :: vs')) in H_nat.
+      rewrite -> (fold_unfold_list_nth_cons V v vs' (S n')).
+      exact (IHn' vs' ov H_nat).
+Qed.
 
 (*
    d. What do you conclude?
+
+   list_nth and nat_nth are equivalent, modulo the order of arguments.
 *)
 
 (* ********** *)
