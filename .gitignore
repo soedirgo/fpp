@@ -10,6 +10,5 @@ coqdoc.*
 *.aux
 *.log
 *.out
-*.pdf
 *.toc
 *.tex
