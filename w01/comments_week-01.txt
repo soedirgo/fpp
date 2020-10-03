@@ -1,0 +1,77 @@
+Hi guys,
+
+Thanks for your handin.  Here are some comments.
+
+----------
+
+week-01_functional-programming-in-Coq.bobbie.v
+
+-----
+
+> This assignment gets students familiar with defining fixpoints,
+> specificially terminating fixpoints, where the parameter in the recursive
+> call must be structurally smaller than the given parameter.
+
+One only understands this sentence if one already knows what the sentence means.
+In your future introductions, try to be more introductory.
+
+-----
+
+> However, all these proofs have been elided, because they are
+> standard, and can be deduced from the inductive definitions.
+
+This point is out of the scope of this week's handin.
+
+-----
+
+Who is Thomas Tan?
+
+-----
+
+Consider a definition of even and odd that is tail recursive with an accumulator.
+
+-----
+
+> While it’s necessary to have 2 base cases for each of even v1 and odd v1,
+
+But it isn't, witness your code.
+
+-----
+
+You might also want to check out how to structure a unit test with more than sampling:
+  https://delimited-continuation.github.io/YSC3236/2019-2020_Sem1/week-01_fixpoints.html#partial-solution-for-exercise-9
+
+-----
+
+Consider also implementing, e.g., number_of_leaves or weight using an accumulator.
+
+-----
+
+> Implementing fixpoints is straightforward: just follow the proof by structural induction.
+
+Which proof?
+
+-----
+
+Overall, it's an enthusiastic first start, and using coqdoc was a particularly nice touch.
+It would be a good idea to use this energy in a more focused way, e.g., to solve the extra exercises.
+
+Narratively, when describing code, you tend to paraphrase it.
+A solution for that is to separate the description of the inductive specification
+and the description of the recursive implementation.
+
+To close, here is a fun programming challenge:
+
+A tree is well-balanced if for each of its nodes,
+the weight of the left subtree is the same as the weight of the right subtree.
+(We will say that a leaf is well balanced.)
+
+Could you implement a function that tests whether a tree is well balanced
+by traversing this tree once, not repeatedly?
+
+It would be a nice touch if the rest of the tree was not traversed
+once it is discovered that one of the subtrees is not well balanced.
+
+Thanks for attending FPP, I hope it will be worth your while.
+
+\Olivier

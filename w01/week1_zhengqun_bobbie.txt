@@ -1,0 +1,125 @@
+Hi Zhengqun and Bobbie,
+
+Thanks for your hand-in! Here are some comments:
+
+--------------------------
+
+week-01_functional-programming-in-Coq.bobbie.v
+
+--------------------------
+
+Natural Numbers
+
+--------------------------
+
+Addition
+
+add_v1, add_v2 and add_v3 are good.
+
+add_v4 is not wrong, but you don't want to define accumulators like that.
+Note that in FPP, you want to reason about auxiliary definitions,
+so don't define them with fix. 
+A more illuminating example will be seen later.
+
+--------------------------
+
+Multiplication
+
+Only 1 implementation?
+
+--------------------------
+
+Power
+
+Your power_v2 is implemented correctly,
+but in general you do not want to use auxiliary definitions defined locally with fix. 
+The way to implement accumulator functions is to do the following:
+
+Fixpoint power_v2_aux (x n a : nat) : nat :=
+  match n with
+  | 0 => a
+  | S n' => power_v2_aux x n' (x * a)
+  end.
+
+Definition power_v2 (x n : nat) : nat :=
+  power_v2_aux x n 1.
+
+--------------------------
+
+The rest for natural numbers are good, except for the accumulators.
+The comments for the accumulators are the same as power.
+
+Good job on the mutual recursion for even and odd!
+
+--------------------------
+
+Binary Trees
+
+--------------------------
+
+ Number of Nodes
+
+Good.
+
+--------------------------
+
+Smallest Leaf
+
+Good.
+
+Next time, you can just use the native function min.
+
+Also, if you create your own function, be sure to test it with a unit test!
+
+--------------------------
+
+Weight
+
+Good.
+
+--------------------------
+
+Height
+
+Good.
+
+--------------------------
+
+Mirror
+
+Good.
+
+--------------------------
+
+Balance
+
+Missing?
+
+--------------------------
+
+FPP Week 1 Group 5 Report-1.pdf
+
+--------------------------
+
+Front Page, Content Page, and Page numbers all there
+
+--------------------------
+
+The explanations are good. 
+Your handle on the mathematical properties are illuminating, 
+hold on to that for the rest of FPP!
+
+Your description of the S 0 as a base case can be confusing at times, 
+but you are right in your conclusion to say that they are captured.
+
+Comments on the code are the same as the .v file, so take a look.
+
+--------------------------
+
+You are also missing well-balanced, so try that next time.
+
+It would also be nice to attempt some optional exercises
+
+--------------------------
+
+A good warm-up, strong understanding of the content, but missing some work.
