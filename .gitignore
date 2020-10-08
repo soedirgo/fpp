@@ -12,3 +12,5 @@ coqdoc.*
 *.out
 *.toc
 *.tex
+*.pdf
+.auctex-auto

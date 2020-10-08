@@ -1,4 +1,19 @@
+#+LATEX_CLASS_OPTIONS: [a4paper,report,hidelinks]
+#+OPTIONS: title:nil toc:nil date:t num:1
+#+TITLE: YSC3236: Functional Programming and Proving (AY20/21 S1) @@latex:\\@@ Midterm Project
+#+AUTHOR: Bobbie Soedirgo @@latex:\\@@ A0181001A
+
+#+BEGIN_EXPORT latex
+\maketitle
+\newpage
+
+\tableofcontents
+\newpage
+#+END_EXPORT
+
 * Introduction
+
+In this report I outline notable comments on my attempt on the exercises in the associated ~midterm-project.v~ file.
 * Exercise 0
 
 It helped to refer back to L6's proving soundness and completeness for equality predicates. Overall, this has similar proof steps to but somewhat easier than the proof for binary tree equality--some subgoals are finished with one-line ~reflexivity~ / ~discriminate~.
@@ -9,13 +24,45 @@ For the completeness part, the last subgoal was a bit of a pain, as I can't seem
 When proving that ~length_v1~ satisfies the specification, I used a eureka lemma to handle the inductive case. This wasn't needed in ~length_v0~ because the specification's form mimics it rather than ~length_v1~.
 * Exercise 2
 
-a. As mentioned in the lecture notes, swapping the argument works.
-b. I initially did induction on ~n~ as well, but it turns out the induction hypothesis wasn't useful.
-c. For this one, I'm inducting on ~n~.
-d. ~list_nth~ and ~nat_nth~ are equivalent, modulo the order of arguments.
+** a
+
+As mentioned in the lecture notes, swapping the argument works.
+
+** b
+
+I initially did induction on ~n~ as well, but it turns out the induction hypothesis wasn't useful.
+
+** c
+
+For this one, I'm inducting on ~n~.
+
+** d
+
+~list_nth~ and ~nat_nth~ are equivalent, modulo the order of arguments.
 * Exercise 3
+
+** f
+
+This was a bit tricky, I had to use fold unfold lemmas from ~length_v0~ to prove it.
 * Exercise 4
+
+** g
+
+I knew right away that ~append_v0~ is not commutative, but maybe there's a more explicit way to prove it than the ~discriminate~ at the end.
+
+** i
+
+This proof is similar in structure with the one for ~copy_v0~, but a bit messier as I had to deal with an additional assumption. I had to reach out to some ~Nat.add~ lemmas.
 * Exercise 5
+
+** d
+
+This one's really tricky for the inductive case--I had to do it the roundabout way by introducing a eureka lemma.
 * Exercise 7
-* Exercise 8
+
+** e
+
+~foo~ and ~bar~ compute ~copy~.
 * Conclusion
+
+I couldn't finish all of the exercises (stupid mistake, I didn't notice the midterm was up until two days before the deadline), but this has been a pretty good overview of what I've learnt so far, especially for the last three lectures where we've been grinding through exercises to build the muscle memory.
