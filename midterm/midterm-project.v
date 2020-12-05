@@ -9,7 +9,7 @@
 
 (* name: Bobbie Soedirgo
    email address: sram-b@comp.nus.edu.sg
-   date: 4 Oct 2020
+   date: 29 Nov 2020
 
    please upload one .v file and one .pdf file containing a project report
 
@@ -18,7 +18,7 @@
    - each use of a tactic should achieve one proof step
    - all lemmas should be applied to all their arguments
    - there should be no occurrences of admit, admitted, and abort
-*)
+ *)
 
 (* ********** *)
 
@@ -156,7 +156,6 @@ Proof.
     + discriminate H_eq.
     + rewrite -> (fold_unfold_eqb_list_cons V eqb_V v1 v1s' (v2 :: v2s')).
       Search (_ -> _ && _ = true).
-      (* TODO *)
       apply andb_true_intro.
       split.
       * apply (C_eqb_V v1 v2).
@@ -165,6 +164,83 @@ Proof.
       * apply (IHv1s' v2s').
         injection H_eq as _ H_eq_T.
         exact H_eq_T.
+Qed.
+
+Corollary soundness_of_equality_over_lists_the_remaining_case :
+  forall (V : Type)
+         (eqb_V : V -> V -> bool),
+    (forall v1 v2 : V,
+        v1 = v2 -> eqb_V v1 v2 = true) ->
+    forall v1s v2s : list V,
+      eqb_list V eqb_V v1s v2s = false ->
+      v1s <> v2s.
+Proof.
+  intros V eqb_V C_eqb_V v1s v2s H'_eqb.
+  unfold not.
+  intro H_eq.
+  Check (completeness_of_equality_over_lists V eqb_V C_eqb_V v1s v2s H_eq).
+  rewrite -> (completeness_of_equality_over_lists V eqb_V C_eqb_V v1s v2s H_eq) in H'_eqb.
+  discriminate H'_eqb.
+Qed.
+
+Corollary completeness_of_equality_over_lists_the_remaining_case :
+  forall (V : Type)
+         (eqb_V : V -> V -> bool),
+    (forall v1 v2 : V,
+        eqb_V v1 v2 = true -> v1 = v2) ->
+    forall v1s v2s : list V,
+      v1s <> v2s ->
+      eqb_list V eqb_V v1s v2s = false.
+Proof.
+  intros V eqb_V S_eqb_V v1s v2s H'_eq.
+  unfold not in H'_eq.
+  Check (not_true_is_false (eqb_list V eqb_V v1s v2s)).
+  apply (not_true_is_false (eqb_list V eqb_V v1s v2s)).
+  unfold not.
+  intro H_eqb.
+  Check (soundness_of_equality_over_lists V eqb_V S_eqb_V v1s v2s H_eqb).
+  contradiction (H'_eq (soundness_of_equality_over_lists V eqb_V S_eqb_V v1s v2s H_eqb)).
+Qed.
+
+(* We bring this from W6 to help *)
+Lemma from_one_equivalence_to_two_implications :
+  forall (V : Type)
+         (eqb_V : V -> V -> bool),
+    (forall v1 v2 : V,
+        eqb_V v1 v2 = true <-> v1 = v2) ->
+    (forall v1 v2 : V,
+        eqb_V v1 v2 = true -> v1 = v2)
+    /\
+    (forall v1 v2 : V,
+        v1 = v2 -> eqb_V v1 v2 = true).
+Proof.
+  intros V eqb_V H_eqv.
+  split.
+  - intros v1 v2 H_eqb.
+    destruct (H_eqv v1 v2) as [H_key _].
+    exact (H_key H_eqb).
+  - intros v1 v2 H_eq.
+    destruct (H_eqv v1 v2) as [_ H_key].
+    exact (H_key H_eq).
+Qed.
+
+Corollary soundness_and_completeness_of_equality_over_lists_the_remaining_case :
+  forall (V: Type)
+         (eqb_V : V -> V -> bool),
+    (forall v1 v2 : V,
+        eqb_V v1 v2 = true <-> v1 = v2) ->
+    forall v1s v2s : list V,
+      v1s <> v2s <->
+      eqb_list V eqb_V v1s v2s = false.
+Proof.
+  intros V eqb_V SC_eqb_V v1s v2s.
+  split.
+  - destruct (from_one_equivalence_to_two_implications V eqb_V SC_eqb_V) as [S_eqb_V _].
+    Check (completeness_of_equality_over_lists_the_remaining_case V eqb_V S_eqb_V v1s v2s).
+    exact (completeness_of_equality_over_lists_the_remaining_case V eqb_V S_eqb_V v1s v2s).
+  - destruct (from_one_equivalence_to_two_implications V eqb_V SC_eqb_V) as [_ C_eqb_V].
+    Check (soundness_of_equality_over_lists_the_remaining_case V eqb_V C_eqb_V v1s v2s).
+    exact (soundness_of_equality_over_lists_the_remaining_case V eqb_V C_eqb_V v1s v2s).
 Qed.
 
 (* ********** *)
@@ -178,7 +254,7 @@ Definition specification_of_length (length : forall V : Type, list V -> nat) :=
   (forall (V : Type)
           (v : V)
           (vs' : list V),
-     length V (v :: vs') = S (length V vs')).
+      length V (v :: vs') = S (length V vs')).
 
 (* Unit-test function: *)
 
@@ -225,10 +301,10 @@ Qed.
 
 Fixpoint length_v0_aux (V : Type) (vs : list V) : nat :=
   match vs with
-    | nil =>
-      0
-    | v :: vs' =>
-      S (length_v0_aux V vs')
+  | nil =>
+    0
+  | v :: vs' =>
+    S (length_v0_aux V vs')
   end.
 
 Definition length_v0 (V : Type) (vs : list V) : nat :=
@@ -275,10 +351,10 @@ Qed.
 
 Fixpoint length_v1_aux (V : Type) (vs : list V) (a : nat) : nat :=
   match vs with
-    | nil =>
-      a
-    | _ :: vs' =>
-      length_v1_aux V vs' (S a)
+  | nil =>
+    a
+  | _ :: vs' =>
+    length_v1_aux V vs' (S a)
   end.
 
 Definition length_v1 (V : Type) (vs : list V) : nat :=
@@ -288,7 +364,7 @@ Compute (test_length length_v1).
 
 Lemma fold_unfold_length_v1_aux_nil :
   forall (V : Type)
-    (a : nat),
+         (a : nat),
     length_v1_aux V nil a =
     a.
 Proof.
@@ -297,9 +373,9 @@ Qed.
 
 Lemma fold_unfold_length_v1_aux_cons :
   forall (V : Type)
-    (v : V)
-    (vs' : list V)
-    (a : nat),
+         (v : V)
+         (vs' : list V)
+         (a : nat),
     length_v1_aux V (v :: vs') a =
     length_v1_aux V vs' (S a).
 Proof.
@@ -308,8 +384,8 @@ Qed.
 
 Lemma about_length_v1_aux :
   forall (V : Type)
-    (vs : list V)
-    (a : nat),
+         (vs : list V)
+         (a : nat),
     length_v1_aux V vs (S a) = S (length_v1_aux V vs a).
 Proof.
   intros V vs.
@@ -461,7 +537,7 @@ Qed.
    a. Both list-indexing functions come with their own unit-test function.
       Test each implementation with the unit-test function of the other implementation,
       and verify that it passes this other test.
-*)
+ *)
 
 Compute (test_nat_nth (fun (V : Type) (n : nat) (vs : list V) => list_nth V vs n)).
 Compute (test_list_nth (fun (V : Type) (vs : list V) (n : nat) => nat_nth V n vs)).
@@ -469,7 +545,7 @@ Compute (test_list_nth (fun (V : Type) (vs : list V) (n : nat) => nat_nth V n vs
 (*
    b. prove that if, given a list and an index, list_nth yields a result,
       then given this index and this list, nat_nth yields the same result
-*)
+ *)
 
 Proposition list_nth_implies_nat_nth :
   forall (V : Type)
@@ -479,28 +555,6 @@ Proposition list_nth_implies_nat_nth :
     list_nth V vs n = ov ->
     nat_nth V n vs = ov.
 Proof.
-  intros V vs.
-  induction vs as [| v vs'].
-  - intros [| n'] ov H_list.
-    + rewrite -> (fold_unfold_list_nth_nil V O) in H_list.
-      rewrite -> (fold_unfold_nat_nth_O V nil).
-      exact (H_list).
-    + rewrite -> (fold_unfold_list_nth_nil V (S n')) in H_list.
-      rewrite -> (fold_unfold_nat_nth_S V n' nil).
-      exact (H_list).
-  - intro n.
-    induction n as [| n' IHn'].
-    + intros ov H_list.
-      rewrite -> (fold_unfold_list_nth_cons V v vs' O) in H_list.
-      rewrite -> (fold_unfold_nat_nth_O V (v :: vs')).
-      exact (H_list).
-    + intros ov H_list.
-      rewrite -> (fold_unfold_list_nth_cons V v vs' (S n')) in H_list.
-      rewrite -> (fold_unfold_nat_nth_S V n' (v :: vs')).
-      exact (IHvs' n' ov H_list).
-
-  Restart.
-
   intros V vs.
   induction vs as [| v vs' IHvs'].
   - intros [| n'] ov H_list.
@@ -517,12 +571,32 @@ Proof.
     + rewrite -> (fold_unfold_list_nth_cons V v vs' (S n')) in H_list.
       rewrite -> (fold_unfold_nat_nth_S V n' (v :: vs')).
       exact (IHvs' n' ov H_list).
+
+  Restart.
+   
+  intros V vs n.
+  revert vs.
+  induction n as [| n' IHn'].
+  - intros [| v vs'] ov H_list.
+    + rewrite -> (fold_unfold_list_nth_nil V O) in H_list.
+      rewrite -> (fold_unfold_nat_nth_O V nil).
+      exact H_list.
+    + rewrite -> (fold_unfold_list_nth_cons V v vs' O) in H_list.
+      rewrite -> (fold_unfold_nat_nth_O V (v :: vs')).
+      exact H_list.
+  - intros [| v vs'] ov H_list.
+    + rewrite -> (fold_unfold_list_nth_nil V (S n')) in H_list.
+      rewrite -> (fold_unfold_nat_nth_S V n' nil).
+      exact (H_list).
+    + rewrite -> (fold_unfold_list_nth_cons V v vs' (S n')) in H_list.
+      rewrite -> (fold_unfold_nat_nth_S V n' (v :: vs')).
+      exact (IHn' vs' ov H_list).
 Qed.
 
 (*
    c. prove that if, given an index and a list, nat_nth yields a result,
       then given this list and this index, list_nth yields the same result
-*)
+ *)
 
 Proposition nat_nth_implies_list_nth :
   forall (V : Type)
@@ -548,13 +622,45 @@ Proof.
     + rewrite -> (fold_unfold_nat_nth_S V n' (v :: vs')) in H_nat.
       rewrite -> (fold_unfold_list_nth_cons V v vs' (S n')).
       exact (IHn' vs' ov H_nat).
+
+  Restart.
+
+  intros V n vs.
+  revert n.
+  induction vs as [| v vs' IHvs'].
+  - intros [| n'] ov H_nat.
+    + rewrite -> (fold_unfold_nat_nth_O V nil) in H_nat.
+      rewrite -> (fold_unfold_list_nth_nil V O).
+      exact H_nat.
+    + rewrite -> (fold_unfold_nat_nth_S V n' nil) in H_nat.
+      rewrite -> (fold_unfold_list_nth_nil V (S n')).
+      exact H_nat.
+  - intros [| n'] ov H_nat.
+    + rewrite -> (fold_unfold_nat_nth_O V (v :: vs')) in H_nat.
+      rewrite -> (fold_unfold_list_nth_cons V v vs' O).
+      exact H_nat.
+    + rewrite -> (fold_unfold_nat_nth_S V n' (v :: vs')) in H_nat.
+      rewrite -> (fold_unfold_list_nth_cons V v vs' (S n')).
+      exact (IHvs' n' ov H_nat).
 Qed.
 
 (*
    d. What do you conclude?
 
-   list_nth and nat_nth are equivalent, modulo the order of arguments.
-*)
+   list_nth and nat_nth are equivalent.
+ *)
+
+Corollary list_nth_and_nat_nth_are_equivalent :
+  forall (V: Type)
+         (vs : list V)
+         (n : nat),
+    list_nth V vs n = nat_nth V n vs.
+Proof.
+  intros V vs n.
+  Check (nat_nth_implies_list_nth V n vs (nat_nth V n vs)).
+  apply (nat_nth_implies_list_nth V n vs (nat_nth V n vs)).
+  reflexivity.
+Qed.
 
 (* ********** *)
 
@@ -567,7 +673,7 @@ Definition specification_of_copy (copy : forall V : Type, list V -> list V) :=
   (forall (V : Type)
           (v : V)
           (vs' : list V),
-     copy V (v :: vs') = v :: (copy V vs')).
+      copy V (v :: vs') = v :: (copy V vs')).
 
 Definition test_copy (candidate : forall V : Type, list V -> list V) :=
   (eqb_list nat beq_nat (candidate nat nil) nil) &&
@@ -584,14 +690,14 @@ Definition test_copy (candidate : forall V : Type, list V -> list V) :=
    a. expand the unit-test function for copy with a few more tests
 
    b. implement the copy function in direct style
-*)
+ *)
 
 Fixpoint copy_v0 (V : Type) (vs : list V) : list V :=
   match vs with
-    | nil =>
-      nil
-    | v :: vs' =>
-      v :: (copy_v0 V vs')
+  | nil =>
+    nil
+  | v :: vs' =>
+    v :: (copy_v0 V vs')
   end.
 
 Compute (test_copy copy_v0).
@@ -602,7 +708,7 @@ Compute (test_copy copy_v0).
    d. prove whether your implementation satisfies the specification.
 
    e. prove whether copy is idempotent
-*)
+ *)
 
 Lemma fold_unfold_copy_v0_nil :
   forall V : Type,
@@ -614,8 +720,8 @@ Qed.
 
 Lemma fold_unfold_copy_v0_cons :
   forall (V : Type)
-    (v : V)
-    (vs' : list V),
+         (v : V)
+         (vs' : list V),
     copy_v0 V (v :: vs') =
     v :: (copy_v0 V vs').
 Proof.
@@ -627,10 +733,8 @@ Theorem copy_v0_satisfies_the_specification_of_copy :
 Proof.
   unfold specification_of_copy.
   split.
-  - intro V.
-    exact (fold_unfold_copy_v0_nil V).
-  - intros V v vs'.
-    exact (fold_unfold_copy_v0_cons V v vs').
+  - exact fold_unfold_copy_v0_nil.
+  - exact fold_unfold_copy_v0_cons.
 Qed.
 
 Proposition copy_is_idempotent :
@@ -650,38 +754,29 @@ Qed.
 
 (*
    f. prove whether copying a list preserves its length
-*)
+ *)
 
 Proposition copy_preserves_length :
   forall (V : Type)
-         (vs : list V)
-         (n : nat),
-    length_v0 V vs = n ->
-    length_v0 V (copy_v0 V vs) = n.
+         (vs : list V),
+    length_v0 V (copy_v0 V vs) = length_v0 V vs.
 Proof.
   unfold length_v0.
   intros V vs.
   induction vs as [| v vs' IHvs'].
-  - intros n H_length.
-    rewrite -> (fold_unfold_copy_v0_nil V).
-    exact H_length.
-  - intros [| n'] H_length.
-    + rewrite -> (fold_unfold_length_v0_aux_cons V v vs') in H_length.
-      discriminate H_length.
-    + rewrite -> (fold_unfold_copy_v0_cons V v vs').
-      rewrite -> (fold_unfold_length_v0_aux_cons V v (copy_v0 V vs')).
-      rewrite -> (fold_unfold_length_v0_aux_cons V v vs') in H_length.
-      Search (S _ = S _ -> _ = _).
-      apply (eq_add_S (length_v0_aux V vs') n') in H_length.
-      Search (_ = _ -> S _ = S _).
-      apply (eq_S (length_v0_aux V (copy_v0 V vs')) n').
-      exact (IHvs' n' H_length).
+  - rewrite -> (fold_unfold_copy_v0_nil V).
+    reflexivity.
+  - rewrite -> (fold_unfold_copy_v0_cons V v vs').
+    rewrite -> (fold_unfold_length_v0_aux_cons V v (copy_v0 V vs')).
+    rewrite -> IHvs'.
+    symmetry.
+    exact (fold_unfold_length_v0_aux_cons V v vs').
 Qed.
 
 (*
    g. subsidiary question: can you think of a strikingly simple implementation of the copy function?
       if so, pray show that it satisfies the specification of copy
-*)
+ *)
 
 Definition copy_v1 (V : Type) (vs : list V) : list V :=
   vs.
@@ -699,6 +794,28 @@ Proof.
     reflexivity.
 Qed.
 
+Theorem there_is_at_most_one_copy_function :
+  forall (copy1 copy2 : forall V : Type, list V -> list V),
+    specification_of_copy copy1 ->
+    specification_of_copy copy2 ->
+    forall (V : Type)
+           (vs : list V),
+      copy1 V vs = copy2 V vs.
+Proof.
+  intros copy1 copy2 S_copy1 S_copy2 V vs.
+  induction vs as [| v vs' IHvs'].
+  - destruct S_copy2 as [H_copy2 _].
+    rewrite -> (H_copy2 V).
+    destruct S_copy1 as [H_copy1 _].
+    exact (H_copy1 V).
+  - destruct S_copy1 as [_ H_copy1].
+    rewrite -> (H_copy1 V v vs').
+    destruct S_copy2 as [_ H_copy2].
+    rewrite -> (H_copy2 V v vs').
+    rewrite -> IHvs'.
+    reflexivity.
+Qed.
+
 (* ********** *)
 
 (* A study of the polymorphic append function: *)
@@ -713,12 +830,39 @@ Definition specification_of_append (append : forall V : Type, list V -> list V -
           (v1s' v2s : list V),
       append V (v1 :: v1s') v2s = v1 :: append V v1s' v2s).
 
+Theorem there_is_at_most_one_append_function :
+  forall (append_1 append_2 : forall V : Type, list V -> list V -> list V),
+    specification_of_append append_1 ->
+    specification_of_append append_2 ->
+    forall (V : Type)
+           (v1s v2s : list V),
+      append_1 V v1s v2s = append_2 V v1s v2s.
+Proof.
+  unfold specification_of_append.
+  intros append_1 append_2.
+  intros [S_append_1_nil S_append_1_cons]
+         [S_append_2_nil S_append_2_cons]
+         V v1s v2s.
+  induction v1s as [ | v1 v1s' IHv1s'].
+
+  - Check (S_append_2_nil V v2s).
+    rewrite -> (S_append_2_nil V v2s).
+    Check (S_append_1_nil V v2s).
+    exact (S_append_1_nil V v2s).
+
+  - Check (S_append_1_cons V v1 v1s' v2s).
+    rewrite -> (S_append_1_cons V v1 v1s' v2s).
+    rewrite -> (S_append_2_cons V v1 v1s' v2s).
+    rewrite -> IHv1s'.
+    reflexivity.
+Qed.
+
 (* Exercise 4:
 
    a. define a unit-test function for append
 
    b. implement the append function in direct style
-*)
+ *)
 
 Definition test_append (candidate : forall V : Type, list V -> list V -> list V) :=
   (eqb_list nat beq_nat (candidate nat nil nil) nil) &&
@@ -751,11 +895,11 @@ Compute (test_append append_v0).
    h. prove whether append is associative
 
    i. prove whether appending two lists preserves their length
-*)
+ *)
 
 Lemma fold_unfold_append_v0_nil :
   forall (V : Type)
-    (v2s : list V),
+         (v2s : list V),
     append_v0 V nil v2s =
     v2s.
 Proof.
@@ -764,9 +908,9 @@ Qed.
 
 Lemma fold_unfold_append_v0_cons :
   forall (V : Type)
-    (v1 : V)
-    (v1s' : list V)
-    (v2s : list V),
+         (v1 : V)
+         (v1s' : list V)
+         (v2s : list V),
     append_v0 V (v1 :: v1s') v2s =
     v1 :: (append_v0 V v1s' v2s).
 Proof.
@@ -778,15 +922,13 @@ Theorem append_v0_satisfies_the_specification_of_append :
 Proof.
   unfold specification_of_append.
   split.
-  - intros V v2s.
-    exact (fold_unfold_append_v0_nil V v2s).
-  - intros V v1 v1s' v2s.
-    exact (fold_unfold_append_v0_cons V v1 v1s' v2s).
+  - exact fold_unfold_append_v0_nil.
+  - exact fold_unfold_append_v0_cons.
 Qed.
 
 Property nil_is_left_neutral_wrt_append_v0 :
   forall (V : Type)
-    (v2s : list V),
+         (v2s : list V),
     append_v0 V nil v2s = v2s.
 Proof.
   exact fold_unfold_append_v0_nil.
@@ -794,7 +936,7 @@ Qed.
 
 Property nil_is_right_neutral_wrt_append_v0 :
   forall (V : Type)
-    (v1s : list V),
+         (v1s : list V),
     append_v0 V v1s nil = v1s.
 Proof.
   intros V v1s.
@@ -806,23 +948,28 @@ Proof.
 Qed.
 
 Property append_v0_is_not_commutative :
-  exists (V : Type)
-    (v1s v2s : list V),
-    append_v0 V v1s v2s <> append_v0 V v2s v1s.
+  forall (V : Type),
+    (exists v1 v2 : V,
+        v1 <> v2) ->
+    exists (v1s v2s : list V),
+      append_v0 V v1s v2s <> append_v0 V v2s v1s.
 Proof.
-  exists nat.
-  exists (1 :: nil).
-  exists (2 :: nil).
-  rewrite -> (fold_unfold_append_v0_cons nat 1 nil (2 :: nil)).
-  rewrite -> (fold_unfold_append_v0_nil nat (2 :: nil)).
-  rewrite -> (fold_unfold_append_v0_cons nat 2 nil (1 :: nil)).
-  rewrite -> (fold_unfold_append_v0_nil nat (1 :: nil)).
-  discriminate.
+  unfold not.
+  intros V [v1 [v2 H_eq_V]].
+  exists (v1 :: nil).
+  exists (v2 :: nil).
+  intro H_append.
+  rewrite -> (fold_unfold_append_v0_cons V v1 nil (v2 :: nil)) in H_append.
+  rewrite -> (nil_is_left_neutral_wrt_append_v0 V (v2 :: nil)) in H_append.
+  rewrite -> (fold_unfold_append_v0_cons V v2 nil (v1 :: nil)) in H_append.
+  rewrite -> (nil_is_left_neutral_wrt_append_v0 V (v1 :: nil)) in H_append.
+  injection H_append as H_absurd _. 
+  contradiction (H_eq_V H_absurd).
 Qed.
 
 Property append_v0_is_associative :
   forall (V : Type)
-    (v1s v2s v3s : list V),
+         (v1s v2s v3s : list V),
     append_v0 V v1s (append_v0 V v2s v3s) = append_v0 V (append_v0 V v1s v2s) v3s.
 Proof.
   intros V v1s.
@@ -841,59 +988,40 @@ Qed.
 
 Proposition append_preserves_length :
   forall (V : Type)
-         (v1s v2s : list V)
-         (n1 n2 : nat),
-    length_v0 V v1s = n1 ->
-    length_v0 V v2s = n2 ->
-    length_v0 V (append_v0 V v1s v2s) = n1 + n2.
+         (v1s v2s : list V),
+    length_v0 V (append_v0 V v1s v2s) = length_v0 V v1s + length_v0 V v2s.
 Proof.
   unfold length_v0.
   intros V v1s.
   induction v1s as [| v1 v1s' IHv1s'].
-  - intros v2s n1 n2 H_length_v1s H_length_v2s.
+  - intro v2s.
     rewrite -> (fold_unfold_append_v0_nil V v2s).
-    rewrite -> (fold_unfold_length_v0_aux_nil V) in H_length_v1s.
-    rewrite <- H_length_v1s.
+    rewrite -> (fold_unfold_length_v0_aux_nil V).
     Search (0 + _).
-    rewrite -> (Nat.add_0_l n2).
-    exact H_length_v2s.
-  - intros v2s [|n1'] n2 H_length_v1s H_length_v2s.
-    + rewrite -> (fold_unfold_length_v0_aux_cons V v1 v1s') in H_length_v1s.
-      discriminate H_length_v1s.
-    + rewrite -> (fold_unfold_length_v0_aux_cons V v1 v1s') in H_length_v1s.
-      Search (S _ = S _).
-      apply (eq_add_S (length_v0_aux V v1s') n1') in H_length_v1s.
-      rewrite -> (fold_unfold_append_v0_cons V v1 v1s' v2s).
-      rewrite -> (fold_unfold_length_v0_aux_cons V v1 (append_v0 V v1s' v2s)).
-      Search (S _ + _).
-      rewrite -> (plus_Sn_m n1' n2).
-      apply (eq_S (length_v0_aux V (append_v0 V v1s' v2s)) (n1' + n2)).
-      exact (IHv1s' v2s n1' n2 H_length_v1s H_length_v2s).
+    rewrite -> (plus_O_n (length_v0_aux V v2s)).
+    reflexivity.
+  - intros v2s.
+    rewrite -> (fold_unfold_append_v0_cons V v1 v1s' v2s).
+    rewrite -> (fold_unfold_length_v0_aux_cons V v1 (append_v0 V v1s' v2s)).
+    rewrite -> (IHv1s' v2s).
+    rewrite -> (fold_unfold_length_v0_aux_cons V v1 v1s').
+    Check plus_Sn_m.
+    rewrite -> (plus_Sn_m (length_v0_aux V v1s') (length_v0_aux V v2s)).
+    reflexivity.
 Qed.
 
 (*
    j. prove whether append and copy commute with each other
-*)
+ *)
 
 Proposition append_and_copy_commute_with_each_other :
   forall (V : Type)
          (v1s v2s : list V),
-    copy_v0 V (append_v0 V v1s v2s) = append_v0 V (copy_v0 V v1s) (copy_v0 V v2s).
+    copy_v1 V (append_v0 V v1s v2s) = append_v0 V (copy_v1 V v1s) (copy_v1 V v2s).
 Proof.
-  intros V v1s.
-  induction v1s as [| v1 v1s' IHv1s'].
-  - intro v2s.
-    rewrite -> (fold_unfold_append_v0_nil V v2s).
-    rewrite -> (fold_unfold_copy_v0_nil V).
-    rewrite -> (fold_unfold_append_v0_nil V (copy_v0 V v2s)).
-    reflexivity.
-  - intro v2s.
-    rewrite -> (fold_unfold_append_v0_cons V v1 v1s' v2s).
-    rewrite -> (fold_unfold_copy_v0_cons V v1 (append_v0 V v1s' v2s)).
-    rewrite -> (fold_unfold_copy_v0_cons V v1 v1s').
-    rewrite -> (fold_unfold_append_v0_cons V v1 (copy_v0 V v1s') (copy_v0 V v2s)).
-    rewrite -> (IHv1s' v2s).
-    reflexivity.
+  intros V v1s v2s.
+  unfold copy_v1.
+  reflexivity.
 Qed.
 
 (* ********** *)
@@ -911,6 +1039,33 @@ Definition specification_of_reverse (reverse : forall V : Type, list V -> list V
             (vs' : list V),
         reverse V (v :: vs') = append V (reverse V vs') (v :: nil)).
 
+Theorem there_is_at_most_one_reverse_function :
+  forall append1 append2 : forall V : Type, list V -> list V -> list V,
+    specification_of_append append1 ->
+    specification_of_append append2 ->
+    forall reverse1 reverse2 : forall V : Type, list V -> list V,
+      specification_of_reverse reverse1 ->
+      specification_of_reverse reverse2 ->
+      forall (V : Type)
+             (vs : list V),
+        reverse1 V vs = reverse2 V vs.
+Proof.
+  intros append1 append2 S_append1 S_append2 reverse1 reverse2 S_reverse1 S_reverse2 V vs.
+  induction vs as [| v vs' IHvs'].
+  - destruct (S_reverse2 append2 S_append2) as [H_reverse2 _].
+    rewrite -> (H_reverse2 V).
+    destruct (S_reverse1 append1 S_append1) as [H_reverse1 _].
+    exact (H_reverse1 V).
+  - destruct (S_reverse1 append1 S_append1) as [_ H_reverse1].
+    rewrite -> (H_reverse1 V v vs').
+    destruct (S_reverse2 append2 S_append2) as [_ H_reverse2].
+    rewrite -> (H_reverse2 V v vs').
+    rewrite -> IHvs'.
+    Check (there_is_at_most_one_append_function append1 append2 S_append1 S_append2).
+    exact (there_is_at_most_one_append_function append1 append2 S_append1 S_append2
+                                                V (reverse2 V vs') (v :: nil)).
+Qed.
+
 (* Exercise 5:
 
    a. define a unit-test function for reverse
@@ -922,12 +1077,15 @@ Definition specification_of_reverse (reverse : forall V : Type, list V -> list V
    d. prove whether your implement satisfies the specification.
 
    e. prove whether reverse is involutory.
-*)
+ *)
 
 Definition test_reverse (candidate : forall V : Type, list V -> list V) :=
   (eqb_list nat beq_nat (candidate nat nil) nil) &&
+  (eqb_list bool eqb (candidate bool nil) nil) &&
   (eqb_list nat beq_nat (candidate nat (1 :: nil)) (1 :: nil)) &&
+  (eqb_list bool eqb (candidate bool (true :: nil)) (true :: nil)) &&
   (eqb_list nat beq_nat (candidate nat (1 :: 2 :: nil)) (2 :: 1 :: nil)) &&
+  (eqb_list bool eqb (candidate bool (true :: false :: nil)) (false :: true :: nil)) &&
   (eqb_list nat beq_nat (candidate nat (candidate nat (1 :: 2 :: nil))) (1 :: 2 :: nil)).
 
 Fixpoint reverse_v0 (V : Type) (v1s : list V) : list V :=
@@ -950,39 +1108,12 @@ Qed.
 
 Lemma fold_unfold_reverse_v0_cons :
   forall (V : Type)
-    (v : V)
-    (vs' : list V),
+         (v : V)
+         (vs' : list V),
     reverse_v0 V (v :: vs') =
     append_v0 V (reverse_v0 V vs') (v :: nil).
 Proof.
   fold_unfold_tactic reverse_v0.
-Qed.
-
-Lemma there_is_at_most_one_append_function :
-  forall (V : Type)
-         (append_1 append_2 : forall V : Type, list V -> list V -> list V),
-    specification_of_append append_1 ->
-    specification_of_append append_2 ->
-    forall v1s v2s : list V,
-      append_1 V v1s v2s = append_2 V v1s v2s.
-Proof.
-  intros V append_1 append_2.
-  unfold specification_of_append.
-  intros [S_append_1_nil S_append_1_cons]
-         [S_append_2_nil S_append_2_cons]
-         v1s v2s.
-  induction v1s as [ | v1 v1s' IHv1s'].
-
-  - Check (S_append_2_nil V v2s).
-    rewrite -> (S_append_2_nil V v2s).
-    Check (S_append_1_nil V v2s).
-    exact (S_append_1_nil V v2s).
-
-  - Check (S_append_1_cons V v1 v1s' v2s).
-    rewrite -> (S_append_1_cons V v1 v1s' v2s).
-    rewrite -> (S_append_2_cons V v1 v1s' v2s).
-    rewrite -> IHv1s'.
-    reflexivity.
 Qed.
 
 Theorem reverse_v0_satisfies_the_specification_of_reverse :
@@ -991,29 +1122,54 @@ Proof.
   unfold specification_of_reverse.
   intros append S_append.
   split.
-  - intro V.
-    exact (fold_unfold_reverse_v0_nil V).
+  - exact fold_unfold_reverse_v0_nil.
   - intros V v vs'.
     Check (there_is_at_most_one_append_function
-             V
              append append_v0
              S_append append_v0_satisfies_the_specification_of_append).
     rewrite -> (there_is_at_most_one_append_function
-                 V
-                 append append_v0
-                 S_append append_v0_satisfies_the_specification_of_append
-                 (reverse_v0 V vs') (v :: nil)).
+                  append append_v0
+                  S_append append_v0_satisfies_the_specification_of_append
+                  V (reverse_v0 V vs') (v :: nil)).
     exact (fold_unfold_reverse_v0_cons V v vs').
 Qed.
 
-(*
-Proposition reverse_is_involutive :
+Lemma about_reverse_v0 :
+  forall (V: Type)
+         (v : V)
+         (v1s : list V),
+    reverse_v0 V (append_v0 V v1s (v :: nil)) = v :: (reverse_v0 V v1s).
+Proof.
+  intros V v v1s.
+  induction v1s as [| v1 v1s' IHv1s'].
+  - rewrite -> (fold_unfold_append_v0_nil V (v :: nil)).
+    rewrite -> (fold_unfold_reverse_v0_cons V v nil).
+    rewrite -> (fold_unfold_reverse_v0_nil V).
+    exact (fold_unfold_append_v0_nil V (v :: nil)).
+  - rewrite -> (fold_unfold_append_v0_cons V v1 v1s' (v :: nil)).
+    rewrite -> (fold_unfold_reverse_v0_cons V v1 (append_v0 V v1s' (v :: nil))).
+    rewrite -> IHv1s'.
+    rewrite -> (fold_unfold_append_v0_cons V v (reverse_v0 V v1s') (v1 :: nil)).
+    rewrite -> (fold_unfold_reverse_v0_cons V v1 v1s').
+    reflexivity.
+Qed.
+
+Proposition reverse_is_involutory :
   forall (V : Type)
          (vs : list V),
     reverse_v0 V (reverse_v0 V vs) = vs.
 Proof.
-Abort.
-*)
+  intros V vs.
+  induction vs as [| v vs' IHvs'].
+  - rewrite -> (fold_unfold_reverse_v0_nil V).
+    exact (fold_unfold_reverse_v0_nil V).
+  - rewrite -> (fold_unfold_reverse_v0_cons V v vs').
+    (* Eureka! *)
+    Check (about_reverse_v0 V v (reverse_v0 V vs')).
+    rewrite -> (about_reverse_v0 V v (reverse_v0 V vs')).
+    rewrite -> IHvs'.
+    reflexivity.
+Qed.
 
 (*
    f. prove whether reversing a list preserves its length
@@ -1024,7 +1180,142 @@ Abort.
 
    i. revisit the propositions above (involution, preservation of length, commutation with append)
       and prove whether your implementation using an accumulator satisfies them
-*)
+ *)
+
+Proposition reverse_preserves_length :
+  forall (V : Type)
+         (vs : list V),
+    length_v0 V (reverse_v0 V vs) = length_v0 V vs.
+Proof.
+  unfold length_v0.
+  intros V vs.
+  induction vs as [| v vs' IHvs'].
+  - rewrite -> (fold_unfold_reverse_v0_nil V).
+    reflexivity.
+  - rewrite -> (fold_unfold_reverse_v0_cons V v vs').
+    rewrite -> (fold_unfold_length_v0_aux_cons V v vs').
+    Check (append_preserves_length V (reverse_v0 V vs') (v :: nil)).
+    assert (H_length := append_preserves_length V (reverse_v0 V vs') (v :: nil)).
+    unfold length_v0 in H_length.
+    rewrite -> H_length.
+    rewrite -> IHvs'.
+    rewrite -> (fold_unfold_length_v0_aux_cons V v nil).
+    rewrite -> (fold_unfold_length_v0_aux_nil V).
+    Search (_ + 1 = S _).
+    exact (Nat.add_1_r (length_v0_aux V vs')).
+Qed.
+
+Proposition append_and_reverse_commute_with_each_other :
+  forall (V : Type)
+         (v1s v2s : list V),
+    reverse_v0 V (append_v0 V v1s v2s) = append_v0 V (reverse_v0 V v2s) (reverse_v0 V v1s).
+Proof.
+  intros V v1s.
+  induction v1s as [| v1 v1s' IHv1s'].
+  - intro v2s.
+    rewrite -> (fold_unfold_append_v0_nil V v2s).
+    rewrite -> (fold_unfold_reverse_v0_nil V).
+    rewrite -> (nil_is_right_neutral_wrt_append_v0 V (reverse_v0 V v2s)).
+    reflexivity.
+  - intros [| v2 v2s'].
+    + rewrite -> (nil_is_right_neutral_wrt_append_v0 V (v1 :: v1s')).
+      rewrite -> (fold_unfold_reverse_v0_cons V v1 v1s').
+      rewrite -> (fold_unfold_reverse_v0_nil V).
+      rewrite -> (fold_unfold_append_v0_nil V (append_v0 V (reverse_v0 V v1s') (v1 :: nil))).
+      reflexivity.
+    + rewrite -> (fold_unfold_append_v0_cons V v1 v1s' (v2 :: v2s')).
+      rewrite -> (fold_unfold_reverse_v0_cons V v1 (append_v0 V v1s' (v2 :: v2s'))).
+      rewrite -> (IHv1s' (v2 :: v2s')).
+      rewrite -> (fold_unfold_reverse_v0_cons V v2 v2s').
+      rewrite -> (fold_unfold_reverse_v0_cons V v1 v1s').
+      rewrite -> (append_v0_is_associative V (append_v0 V (reverse_v0 V v2s') (v2 :: nil)) (reverse_v0 V v1s') (v1 :: nil)).
+      reflexivity.
+Qed.
+
+Fixpoint reverse_v1_aux (V : Type) (vs : list V) (acc : list V) : list V :=
+  match vs with
+  | nil =>
+    acc
+  | v :: vs' =>
+    reverse_v1_aux V vs' (v :: acc)
+  end.
+
+Lemma fold_unfold_reverse_v1_aux_nil :
+  forall (V : Type)
+         (acc : list V),
+    reverse_v1_aux V nil acc =
+    acc.
+Proof.
+  fold_unfold_tactic reverse_v1_aux.
+Qed.
+
+Lemma fold_unfold_reverse_v1_aux_cons :
+  forall (V : Type)
+         (v : V)
+         (vs' acc : list V),
+    reverse_v1_aux V (v :: vs') acc =
+    reverse_v1_aux V vs' (v :: acc).
+Proof.
+  fold_unfold_tactic reverse_v1_aux.
+Qed.
+
+Definition reverse_v1 (V : Type) (vs : list V) : list V :=
+  reverse_v1_aux V vs nil.
+
+Lemma about_reverse_v1_aux :
+  forall append : forall V : Type, list V -> list V -> list V,
+    specification_of_append append ->
+    forall (V : Type)
+           (vs acc : list V),
+      reverse_v1_aux V vs acc = append V (reverse_v1_aux V vs nil) acc.
+Proof.
+  intros append S_append V vs.
+  induction vs as [| v vs' IHvs'].
+  - intro acc.
+    rewrite -> (fold_unfold_reverse_v1_aux_nil V acc).
+    rewrite -> (fold_unfold_reverse_v1_aux_nil V nil).
+    destruct S_append as [H_append _].
+    rewrite -> (H_append V acc).
+    reflexivity.
+  - intro acc.
+    rewrite -> (fold_unfold_reverse_v1_aux_cons V v vs' acc).
+    rewrite -> (IHvs' (v :: acc)).
+    rewrite -> (fold_unfold_reverse_v1_aux_cons V v vs' nil).
+    rewrite -> (IHvs' (v :: nil)).
+    Check (there_is_at_most_one_append_function
+             append append_v0
+             S_append append_v0_satisfies_the_specification_of_append).
+    rewrite -> (there_is_at_most_one_append_function
+                  append append_v0
+                  S_append append_v0_satisfies_the_specification_of_append
+                  V (reverse_v1_aux V vs' nil) (v :: acc)).
+    rewrite -> (there_is_at_most_one_append_function
+                  append append_v0
+                  S_append append_v0_satisfies_the_specification_of_append
+                  V (append V (reverse_v1_aux V vs' nil) (v :: nil)) acc).
+    rewrite -> (there_is_at_most_one_append_function
+                  append append_v0
+                  S_append append_v0_satisfies_the_specification_of_append
+                  V (reverse_v1_aux V vs' nil) (v :: nil)).
+    rewrite <- (append_v0_is_associative V (reverse_v1_aux V vs' nil) (v :: nil) acc).
+    rewrite -> (fold_unfold_append_v0_cons V v nil acc).
+    rewrite -> (fold_unfold_append_v0_nil V acc).
+    reflexivity.
+Qed.
+
+Theorem reverse_v1_satisfies_the_specification_of_reverse :
+  specification_of_reverse reverse_v1.
+Proof.
+  unfold specification_of_reverse, reverse_v1.
+  intros append S_append.
+  split.
+  - intro V.
+    exact (fold_unfold_reverse_v1_aux_nil V nil).
+  - intros V v vs'.
+    rewrite -> (fold_unfold_reverse_v1_aux_cons V v vs' nil).
+    (* Eureka! *)
+    exact (about_reverse_v1_aux append S_append V vs' (v :: nil)).
+Qed.
 
 (* ********** *)
 
@@ -1060,7 +1351,7 @@ Definition specification_of_map (map : forall V W : Type, (V -> W) -> list V -> 
    h. do map and reverse commute with each other and if so how?
 
    i. define a unit-test function for map and verify that your implementation satisfies it
-*)
+ *)
 
 (* ********** *)
 
@@ -1070,36 +1361,36 @@ Definition specification_of_list_fold_right (list_fold_right : forall V W : Type
   (forall (V W : Type)
           (nil_case : W)
           (cons_case : V -> W -> W),
-     list_fold_right V W nil_case cons_case nil =
-     nil_case)
+      list_fold_right V W nil_case cons_case nil =
+      nil_case)
   /\
   (forall (V W : Type)
           (nil_case : W)
           (cons_case : V -> W -> W)
           (v : V)
           (vs' : list V),
-     list_fold_right V W nil_case cons_case (v :: vs') =
-     cons_case v (list_fold_right V W nil_case cons_case vs')).
+      list_fold_right V W nil_case cons_case (v :: vs') =
+      cons_case v (list_fold_right V W nil_case cons_case vs')).
 
 Definition specification_of_list_fold_left (list_fold_left : forall V W : Type, W -> (V -> W -> W) -> list V -> W) :=
   (forall (V W : Type)
           (nil_case : W)
           (cons_case : V -> W -> W),
-     list_fold_left V W nil_case cons_case nil =
-     nil_case)
+      list_fold_left V W nil_case cons_case nil =
+      nil_case)
   /\
   (forall (V W : Type)
           (nil_case : W)
           (cons_case : V -> W -> W)
           (v : V)
           (vs' : list V),
-     list_fold_left V W nil_case cons_case (v :: vs') =
-     list_fold_left V W (cons_case v nil_case) cons_case vs').
+      list_fold_left V W nil_case cons_case (v :: vs') =
+      list_fold_left V W (cons_case v nil_case) cons_case vs').
 
 (* Exercise 7:
 
    a. implement the fold-right function in direct style
-*)
+ *)
 
 Fixpoint list_fold_right (V W : Type) (nil_case : W) (cons_case : V -> W -> W) (vs : list V) : W :=
   match vs with
@@ -1111,7 +1402,7 @@ Fixpoint list_fold_right (V W : Type) (nil_case : W) (cons_case : V -> W -> W) (
 
 (*
    b. implement the fold-left function in direct style
-*)
+ *)
 
 Fixpoint list_fold_left (V W : Type) (nil_case : W) (cons_case : V -> W -> W) (vs : list V) : W :=
   match vs with
@@ -1127,12 +1418,12 @@ Fixpoint list_fold_left (V W : Type) (nil_case : W) (cons_case : V -> W -> W) (v
    d. prove that each of your implementations satisfies the corresponding specification
 
    e. which function do foo and bar (defined just below) compute?
-*)
+ *)
 
 Lemma fold_unfold_list_fold_right_nil :
   forall (V W : Type)
-    (nil_case : W)
-    (cons_case : V -> W -> W),
+         (nil_case : W)
+         (cons_case : V -> W -> W),
     list_fold_right V W nil_case cons_case nil =
     nil_case.
 Proof.
@@ -1141,10 +1432,10 @@ Qed.
 
 Lemma fold_unfold_list_fold_right_cons :
   forall (V W : Type)
-    (nil_case : W)
-    (cons_case : V -> W -> W)
-    (v : V)
-    (vs' : list V),
+         (nil_case : W)
+         (cons_case : V -> W -> W)
+         (v : V)
+         (vs' : list V),
     list_fold_right V W nil_case cons_case (v :: vs') =
     cons_case v (list_fold_right V W nil_case cons_case vs').
 Proof.
@@ -1153,8 +1444,8 @@ Qed.
 
 Lemma fold_unfold_list_fold_left_nil :
   forall (V W : Type)
-    (nil_case : W)
-    (cons_case : V -> W -> W),
+         (nil_case : W)
+         (cons_case : V -> W -> W),
     list_fold_left V W nil_case cons_case nil =
     nil_case.
 Proof.
@@ -1163,10 +1454,10 @@ Qed.
 
 Lemma fold_unfold_list_fold_left_cons :
   forall (V W : Type)
-    (nil_case : W)
-    (cons_case : V -> W -> W)
-    (v : V)
-    (vs' : list V),
+         (nil_case : W)
+         (cons_case : V -> W -> W)
+         (v : V)
+         (vs' : list V),
     list_fold_left V W nil_case cons_case (v :: vs') =
     list_fold_left V W (cons_case v nil_case) cons_case vs'.
 Proof.
@@ -1178,10 +1469,8 @@ Theorem list_fold_right_satisfies_the_specification_of_list_fold_right :
 Proof.
   unfold specification_of_list_fold_right.
   split.
-  - intros V W nil_case cons_case.
-    exact (fold_unfold_list_fold_right_nil V W nil_case cons_case).
-  - intros V W nil_case cons_case v vs'.
-    exact (fold_unfold_list_fold_right_cons V W nil_case cons_case v vs').
+  - exact fold_unfold_list_fold_right_nil.
+  - exact fold_unfold_list_fold_right_cons.
 Qed.
 
 Theorem list_fold_left_satisfies_the_specification_of_list_fold_left :
@@ -1189,14 +1478,15 @@ Theorem list_fold_left_satisfies_the_specification_of_list_fold_left :
 Proof.
   unfold specification_of_list_fold_left.
   split.
-  - intros V W nil_case cons_case.
-    exact (fold_unfold_list_fold_left_nil V W nil_case cons_case).
-  - intros V W nil_case cons_case v vs'.
-    exact (fold_unfold_list_fold_left_cons V W nil_case cons_case v vs').
+  - exact fold_unfold_list_fold_left_nil.
+  - exact fold_unfold_list_fold_left_cons.
 Qed.
 
 Definition foo (V : Type) (vs : list V) :=
   list_fold_right V (list V) nil (fun v vs => v :: vs) vs.
+Compute (foo nat nil).
+Compute (foo nat (1 :: nil)).
+Compute (foo nat (1 :: 2 :: 3 :: nil)).
 
 Theorem foo_satisfies_the_specification_of_copy :
   specification_of_copy foo.
@@ -1211,6 +1501,64 @@ Qed.
 
 Definition bar (V : Type) (vs : list V) :=
   list_fold_left V (list V) nil (fun v vs => v :: vs) vs.
+
+Compute (bar nat nil).
+Compute (bar nat (1 :: nil)).
+Compute (bar nat (1 :: 2 :: 3 :: nil)).
+
+Lemma about_bar :
+  forall append : forall V : Type, list V -> list V -> list V,
+    specification_of_append append ->
+    forall (V : Type)
+           (vs acc : list V),
+      list_fold_left V (list V) acc (fun (v : V) (vs' : list V) => v :: vs') vs =
+      append V (list_fold_left V (list V) nil (fun (v : V) (vs' : list V) => v :: vs') vs) acc.
+Proof.
+  intros append S_append V vs.
+  induction vs as [| v vs' IHvs'].
+  - intro acc.
+    rewrite -> (fold_unfold_list_fold_left_nil V (list V) acc (fun (v : V) (vs' : list V) => v :: vs')).
+    rewrite -> (fold_unfold_list_fold_left_nil V (list V) nil (fun (v : V) (vs' : list V) => v :: vs')).
+    destruct S_append as [H_append _].
+    rewrite -> (H_append V acc).
+    reflexivity.
+  - intro acc.
+    rewrite -> (fold_unfold_list_fold_left_cons V (list V) acc (fun (v : V) (vs' : list V) => v :: vs') v vs').
+    rewrite -> (IHvs' (v :: acc)).
+    rewrite -> (fold_unfold_list_fold_left_cons V (list V) nil (fun (v' : V) (vs : list V) => v' :: vs) v vs').
+    rewrite -> (IHvs' (v :: nil)).
+    Check (there_is_at_most_one_append_function
+             append append_v0
+             S_append append_v0_satisfies_the_specification_of_append).
+    (* TODO *)
+    rewrite (there_is_at_most_one_append_function
+               append append_v0
+               S_append append_v0_satisfies_the_specification_of_append).
+    rewrite (there_is_at_most_one_append_function
+               append append_v0
+               S_append append_v0_satisfies_the_specification_of_append).
+    rewrite (there_is_at_most_one_append_function
+               append append_v0
+               S_append append_v0_satisfies_the_specification_of_append).
+    rewrite <- (append_v0_is_associative V (list_fold_left V (list V) nil (fun (v' : V) (vs : list V) => v' :: vs) vs') (v :: nil) acc).
+    rewrite -> (fold_unfold_append_v0_cons V v nil acc).
+    rewrite -> (fold_unfold_append_v0_nil V acc).
+    reflexivity.
+Qed.
+
+Theorem bar_satisfies_the_specification_of_reverse :
+  specification_of_reverse bar.
+Proof.
+  unfold specification_of_reverse, bar.
+  intros append S_append.
+  split.
+  - intro V.
+    exact (fold_unfold_list_fold_left_nil V (list V) nil (fun v vs => v :: vs)).
+  - intros V v vs'.
+    rewrite -> (fold_unfold_list_fold_left_cons V (list V) nil (fun v vs => v :: vs) v vs').
+    (* Eureka! *)
+    exact (about_bar append S_append V vs' (v :: nil)).
+Qed.
 
 (*
    f. implement length using either list_fold_right or list_fold_left, and justify your choice
@@ -1228,7 +1576,27 @@ Definition bar (V : Type) (vs : list V) :=
    l. implement list_fold_right using list_fold_left, without using reverse
 
    m. implement list_fold_left using list_fold_right, without using reverse
-*)
+ *)
+
+Definition length_v2 (V : Type) (vs : list V) : nat :=
+  list_fold_left V nat O (fun _ n => S n) vs.
+
+Compute (test_length length_v2).
+
+Definition copy_v2 (V : Type) (vs : list V) : list V :=
+  list_fold_right V (list V) nil (fun v vs => (v :: vs)) vs.
+
+Compute (test_copy copy_v2).
+
+Definition append_v1 (V : Type) (v1s v2s : list V) : list V :=
+  list_fold_right V (list V) v2s (fun v vs => (v :: vs)) v1s.
+
+Compute (test_append append_v1).
+
+Definition reverse_v2 (V : Type) (vs : list V) : list V :=
+  list_fold_left V (list V) nil (fun v vs => (v :: vs)) vs.
+
+Compute (test_reverse reverse_v2).
 
 Definition is_left_permutative (V W : Type) (op2 : V -> W -> W) :=
   forall (v1 v2 : V)
@@ -1241,9 +1609,31 @@ Definition is_left_permutative (V W : Type) (op2 : V -> W -> W) :=
       applying list_fold_left and applying list_fold_right
       to a nil case, this cons case, and a list
       give the same result
-*)
-  
-(*
+ *)
+
+Lemma about_the_grand_finale :
+  forall (V W : Type)
+         (cons_case : V -> W -> W),
+    is_left_permutative V W cons_case ->
+    forall (vs : list V)
+           (v : V)
+           (nil_case : W),
+      list_fold_left V W (cons_case v nil_case) cons_case vs =
+      cons_case v (list_fold_left V W nil_case cons_case vs).
+Proof.
+  unfold is_left_permutative.
+  intros V W cons_case H_left_perm vs.
+  induction vs as [| v' vs' IHvs'].
+  - intros v nil_case.
+    rewrite -> (fold_unfold_list_fold_left_nil V W nil_case cons_case).
+    exact (fold_unfold_list_fold_left_nil V W (cons_case v nil_case) cons_case).
+  - intros v nil_case.
+    rewrite -> (fold_unfold_list_fold_left_cons V W (cons_case v nil_case) cons_case v' vs').
+    rewrite -> (fold_unfold_list_fold_left_cons V W nil_case cons_case v' vs').
+    rewrite -> (H_left_perm v' v nil_case).
+    exact (IHvs' v (cons_case v' nil_case)).
+Qed.
+
 Theorem the_grand_finale :
   forall (V W : Type)
          (cons_case : V -> W -> W),
@@ -1253,19 +1643,30 @@ Theorem the_grand_finale :
       list_fold_left  V W nil_case cons_case vs =
       list_fold_right V W nil_case cons_case vs.
 Proof.
-Abort.
-*)
+  unfold is_left_permutative.
+  intros V W cons_case H_left_perm nil_case vs.
+  induction vs as [| v vs' IHvs'].
+  - rewrite -> (fold_unfold_list_fold_right_nil V W nil_case cons_case).
+    exact (fold_unfold_list_fold_left_nil V W nil_case cons_case).
+  - rewrite -> (fold_unfold_list_fold_left_cons V W nil_case cons_case v vs').
+    rewrite -> (fold_unfold_list_fold_right_cons V W nil_case cons_case v vs').
+    rewrite <- IHvs'.
+    (* Eureka! *)
+    exact (about_the_grand_finale V W cons_case H_left_perm vs' v nil_case).
+Qed.
 
 (*
    o. can you think of corollaries of this property?
-*)
+ *)
 
 Lemma plus_is_left_permutative :
   is_left_permutative nat nat plus.
 Proof.
-Abort.
+  unfold is_left_permutative.
+  Search (_ + (_ + _) = _).
+  exact Nat.add_shuffle3.
+Qed.
 
-(*
 Corollary example_for_plus :
   forall ns : list nat,
     list_fold_left nat nat 0 plus ns = list_fold_right nat nat 0 plus ns.
@@ -1273,14 +1674,22 @@ Proof.
   Check (the_grand_finale nat nat plus plus_is_left_permutative 0).
   exact (the_grand_finale nat nat plus plus_is_left_permutative 0).
 Qed.
-*)
+
 (* What do you make of this corollary?
    Can you think of more such corollaries?
-*)
+ *)
+
+Corollary example_for_mult :
+  forall ns : list nat,
+    list_fold_left nat nat 1 mult ns = list_fold_right nat nat 1 mult ns.
+Proof.
+  Check (the_grand_finale nat nat mult Nat.mul_shuffle3 1).
+  exact (the_grand_finale nat nat mult Nat.mul_shuffle3 1).
+Qed.
 
 (*
    p. subsidiary question: does the converse of Theorem the_grand_finale hold?
-*)
+ *)
 
 (*
 Theorem the_grand_finale_converse :
@@ -1293,7 +1702,7 @@ Theorem the_grand_finale_converse :
     is_left_permutative V W cons_case.
 Proof.
 Abort.
-*)
+ *)
 
 (* ********** *)
 
@@ -1358,6 +1767,50 @@ Lemma fold_unfold_nat_fold_left_S :
 Proof.
   fold_unfold_tactic nat_fold_left.
 Qed.
+
+Definition nat_nth' (V : Type) (n : nat) (vs : list V) : option V :=
+  match nat_fold_right (list V) vs (fun vs : list V => match vs with
+                                                       | nil => nil
+                                                       | _ :: vs' => vs'
+                                                       end) n with
+  | nil => None
+  | v :: _ => Some v
+  end.
+
+Compute (test_nat_nth nat_nth').
+
+Definition nat_nth'' (V : Type) (n : nat) (vs : list V) : option V :=
+  match nat_fold_left (list V) vs (fun vs : list V => match vs with
+                                                      | nil => nil
+                                                      | _ :: vs' => vs'
+                                                      end) n with
+  | nil => None
+  | v :: _ => Some v
+  end.
+
+Compute (test_nat_nth nat_nth'').
+
+Definition list_nth' (V : Type) (vs : list V) (n : nat) : option V :=
+  snd (list_fold_right V (nat * option V) (n, None)
+                       (fun (v : V) (acc : nat * option V) => match acc with
+                                                              | (O, None) => (O, Some v)
+                                                              | (O, Some v') => (O, Some v') 
+                                                              | (S n', _) => (n', None)
+                                                              end)
+                       (reverse_v0 V vs)).
+
+Compute (test_list_nth list_nth').
+
+Definition list_nth'' (V : Type) (vs : list V) (n : nat) : option V :=
+  snd (list_fold_left V (nat * option V) (n, None)
+                      (fun (v : V) (acc : nat * option V) => match acc with
+                                                             | (O, None) => (O, Some v)
+                                                             | (O, Some v') => (O, Some v') 
+                                                             | (S n', _) => (n', None)
+                                                             end)
+                      vs).
+
+Compute (test_list_nth list_nth'').
 
 (* ********** *)
 

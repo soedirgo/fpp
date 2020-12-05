@@ -1,5 +1,8 @@
 #+LATEX_CLASS_OPTIONS: [a4paper,report,hidelinks]
-#+OPTIONS: title:nil toc:nil date:t num:1
+#+LATEX_HEADER: \usepackage{xcolor}
+#+LATEX_HEADER: \colorlet{lightlightgray}{gray!10}
+#+OPTIONS: title:nil toc:nil date:t
+#+LATEX_HEADER: \setcounter{secnumdepth}{0}
 #+TITLE: YSC3236: Functional Programming and Proving (AY20/21 S1) @@latex:\\@@ Midterm Project
 #+AUTHOR: Bobbie Soedirgo @@latex:\\@@ A0181001A
 
@@ -12,57 +15,308 @@
 #+END_EXPORT
 
 * Introduction
+We've had an inkling of what this midterm project is trying to convey in Week 5 when we discussed folding over Peano numbers. This time, however, we look into folding over one of the most common data structures: the list.
 
-In this report I outline notable comments on my attempt on the exercises in the associated ~midterm-project.v~ file.
+Other things that led up to this point, e.g. the mystery functions in Week 5, also prepares us to come up with Eureka lemmas that we will need throughout these exercises. At the end of the day, we would have understood the punchline of the midterm project: that folding over lists is a generic operation that captures enumeration.
 * Exercise 0
+The proof for this is straightforward. Of course, we must remember to treat the ~false~ case as well. As noted in Week 6, the soundness and completeness for the ~false~ case is a corollary of the ~true~ case.
 
-It helped to refer back to L6's proving soundness and completeness for equality predicates. Overall, this has similar proof steps to but somewhat easier than the proof for binary tree equality--some subgoals are finished with one-line ~reflexivity~ / ~discriminate~.
+#+ATTR_LATEX: :float nil :options bgcolor=lightlightgray,frame=lines,fontsize=\footnotesize
+#+BEGIN_SRC coq
+Corollary soundness_and_completeness_of_equality_over_lists_the_remaining_case :
+  forall (V: Type)
+    (eqb_V : V -> V -> bool),
+    (forall v1 v2 : V,
+        eqb_V v1 v2 = true <-> v1 = v2) ->
+    forall v1s v2s : list V,
+      v1s <> v2s <->
+      eqb_list V eqb_V v1s v2s = false.
+#+END_SRC
 
-For the completeness part, the last subgoal was a bit of a pain, as I can't seem to fully apply ~andb_true_intro~. It was left not fully applied in the ~.v~ file.
+As ~eqb_list~ is polymorphic over ~V~, we need to care for ~eqb_V~ as well--specifically, we only deal with ~eqb_V~ that satisfies:
+
+#+ATTR_LATEX: :float nil :options bgcolor=lightlightgray,frame=lines,fontsize=\footnotesize
+#+BEGIN_SRC coq
+(forall v1 v2 : V, eqb_V v1 v2 = true <-> v1 = v2)
+#+END_SRC
+
+Using ~eqb_V~ that doesn't satisfy that forgo the soundness and completeness guarantees.
 * Exercise 1
+The implementation is straightforward. In proving that ~length_v1~ satisfies the specification of length, we use a Eureka lemma:
 
-When proving that ~length_v1~ satisfies the specification, I used a eureka lemma to handle the inductive case. This wasn't needed in ~length_v0~ because the specification's form mimics it rather than ~length_v1~.
+#+ATTR_LATEX: :float nil :options bgcolor=lightlightgray,frame=lines,fontsize=\footnotesize
+#+BEGIN_SRC coq
+Lemma about_length_v1_aux :
+  forall (V : Type)
+         (vs : list V)
+         (a : nat),
+    length_v1_aux V vs (S a) = S (length_v1_aux V vs a).
+#+END_SRC
+
+As a corollary of the satisfaction proof, we know that ~length_v1~ is equivalent to ~length_v0~, because length specifies a unique function.
 * Exercise 2
-
 ** a
+Both implementations pass the other's unit test, though we need to swap the order of arguments (which is fine since the possible values for ~n~ doesn't depend on the chosen value for ~vs~, and vice versa).
 
-As mentioned in the lecture notes, swapping the argument works.
+#+ATTR_LATEX: :float nil :options bgcolor=lightlightgray,frame=lines,fontsize=\footnotesize
+#+BEGIN_SRC coq
+Compute (test_nat_nth (fun (V : Type) (n : nat) (vs : list V) => list_nth V vs n)).
+Compute (test_list_nth (fun (V : Type) (vs : list V) (n : nat) => nat_nth V n vs)).
+#+END_SRC
+** b & c
+The proof is straightforward, but note that it's possible do prove by induction on either ~vs~ or ~n~.
 
-** b
+#+ATTR_LATEX: :float nil :options bgcolor=lightlightgray,frame=lines,fontsize=\footnotesize
+#+BEGIN_SRC coq
+Proposition list_nth_implies_nat_nth :
+  forall (V : Type)
+         (vs : list V)
+         (n : nat)
+         (ov : option V),
+    list_nth V vs n = ov ->
+    nat_nth V n vs = ov.
+Proof.
+  intros V vs.
+  induction vs as [| v vs' IHvs'].
+  ...
 
-I initially did induction on ~n~ as well, but it turns out the induction hypothesis wasn't useful.
+  Restart.
+  
+  intros V vs n.
+  revert vs.
+  induction n as [| n' IHn'].
+  ...
+Qed.
+#+END_SRC
 
-** c
-
-For this one, I'm inducting on ~n~.
-
+This also applies for (c).
 ** d
+I conclude that both functions are equivalent. We can prove this either through primitive equality or logical equivalence. We know in Week 7 that they're equivalent.
 
-~list_nth~ and ~nat_nth~ are equivalent, modulo the order of arguments.
+#+ATTR_LATEX: :float nil :options bgcolor=lightlightgray,frame=lines,fontsize=\footnotesize
+#+BEGIN_SRC coq
+(* Primitive equality *)
+forall (V : Type)
+       (vs : list V)
+	   (n : nat),
+  list_nth V vs n = nat_nth V n vs.
+
+(* Logical equivalence *)
+forall (V : Type)
+       (vs : list V)
+	   (n : nat)
+	   (ov : option V),
+  list_nth V vs n = ov <->
+  nat_nth V n vs = ov.
+#+END_SRC
+
+However, it's interesting to me that with primitive equality, it's sufficient to prove ~nat_nth_implies_list_nth~, which is just one way of the logical equivalence. I suppose the reason for this is the structure of the proposition, which allows ~ov~ to be rewritten to ~nat_nth V n vs~, QED.
 * Exercise 3
+** a
+The unit test is expanded to cover properties of involution and preservation of length.
 
-** f
-
-This was a bit tricky, I had to use fold unfold lemmas from ~length_v0~ to prove it.
-* Exercise 4
-
-** g
-
-I knew right away that ~append_v0~ is not commutative, but maybe there's a more explicit way to prove it than the ~discriminate~ at the end.
-
-** i
-
-This proof is similar in structure with the one for ~copy_v0~, but a bit messier as I had to deal with an additional assumption. I had to reach out to some ~Nat.add~ lemmas.
-* Exercise 5
-
-** d
-
-This one's really tricky for the inductive case--I had to do it the roundabout way by introducing a eureka lemma.
-* Exercise 7
-
+#+ATTR_LATEX: :float nil :options bgcolor=lightlightgray,frame=lines,fontsize=\footnotesize
+#+BEGIN_SRC coq
+  ...
+  (eqb_list bool eqb (candidate bool (false :: true :: nil)) (false :: true :: nil)) &&
+  (eqb_list bool eqb (candidate bool (candidate bool (false :: nil))) (false :: nil)) &&
+  (beq_nat (length_v0 nat (candidate nat (1 :: nil))) (length_v0 nat (1 :: nil))).
+#+END_SRC
 ** e
+Side note about idempotence that I learned: it's not the same as identity--if a function is identity then it's idempotent, but the converse may not be true. For example, the absolute value function is idempotent but not identity. Copy is both (structurally) idempotent and identity.
+** g
+A strikingly simple implementation would be the identity function. It's worth noting that this provides physical identity--what comes out is what comes in.
 
-~foo~ and ~bar~ compute ~copy~.
+#+ATTR_LATEX: :float nil :options bgcolor=lightlightgray,frame=lines,fontsize=\footnotesize
+#+BEGIN_SRC coq
+Definition copy_v1 (V : Type) (vs : list V) : list V :=
+  vs.
+#+END_SRC
+
+As I didn't take Intro to CS, I needed to look up the difference between structural vs. physical identity of inductive types, which I interpret as physical identity being a stricter identity, i.e. physical identity -> structural identity.
+
+Just to make sure, we prove ~there_is_at_most_one_copy_function~ to show that ~copy_v0~ and ~copy_v1~ are structurally equivalent.
+
+#+ATTR_LATEX: :float nil :options bgcolor=lightlightgray,frame=lines,fontsize=\footnotesize
+#+BEGIN_SRC coq
+Theorem there_is_at_most_one_copy_function :
+  forall (copy1 copy2 : forall V : Type, list V -> list V),
+    specification_of_copy copy1 ->
+    specification_of_copy copy2 ->
+    forall (V : Type)
+           (vs : list V),
+      copy1 V vs = copy2 V vs.
+#+END_SRC
+* Exercise 4
+~there_is_at_most_one_append_function~ shows that append specifies a unique function (if any).
+** g
+While ~append_v0~ is not always commutative, it's not always *not* commutative either--it's commutative over lists of units (~tt~), for example. It's also commutative over lists of voids, since the only possible value of type ~list void~ is ~nil~.
+
+The restriction of types for which ~append_v0~ can be seen in the proposition: there has to be at least two distinct values of that type.
+
+#+ATTR_LATEX: :float nil :options bgcolor=lightlightgray,frame=lines,fontsize=\footnotesize
+#+BEGIN_SRC coq
+Property append_v0_is_not_commutative :
+  forall (V : Type),
+    (exists v1 v2 : V,
+        v1 <> v2) ->
+    exists (v1s v2s : list V),
+      append_v0 V v1s v2s <> append_v0 V v2s v1s.
+#+END_SRC
+** h
+Note that the Light of Inductil is unnecessary here. Whether or not it is necessary depends on the places where the induction hypothesis gets used--if it's applied with the same values as what we would've ~intros~'d (in this case ~v2s~ and ~v3s~), it's unnecessary. That said, it's always good practice to apply the technique where we can, if only to avoid having to backtrack when we find out we need a stronger induction hypothesis.
+
+#+ATTR_LATEX: :float nil :options bgcolor=lightlightgray,frame=lines,fontsize=\footnotesize
+#+BEGIN_SRC coq
+Property append_v0_is_associative :
+  forall (V : Type)
+         (v1s v2s v3s : list V),
+    append_v0 V v1s (append_v0 V v2s v3s) = append_v0 V (append_v0 V v1s v2s) v3s.
+Proof.
+  intros V v1s. (* OK to introduce v2s and v3s here *)
+  induction v1s as [| v1 v1s' IHv1s'].
+  - intros v2s v3s.
+  ...
+#+END_SRC
+
+This also applies in other places in the rest of the exercises.
+** j
+We're using ~copy_v1~ because it greatly simplifies the proof. This is OK because we've shown earlier that the two are equivalent.
+
+#+ATTR_LATEX: :float nil :options bgcolor=lightlightgray,frame=lines,fontsize=\footnotesize
+#+BEGIN_SRC coq
+Proposition append_and_copy_commute_with_each_other :
+  forall (V : Type)
+         (v1s v2s : list V),
+    copy_v1 V (append_v0 V v1s v2s) = append_v0 V (copy_v1 V v1s) (copy_v1 V v2s).
+Proof.
+  intros V v1s v2s.
+  unfold copy_v1.
+  reflexivity.
+Qed.
+#+END_SRC
+* Exercise 5
+As a prelude, we show that reverse specifies a unique function (if any), though this fact is unused in the rest of the exercises.
+
+#+ATTR_LATEX: :float nil :options bgcolor=lightlightgray,frame=lines,fontsize=\footnotesize
+#+BEGIN_SRC coq
+Theorem there_is_at_most_one_reverse_function :
+  forall append1 append2 : forall V : Type, list V -> list V -> list V,
+    specification_of_append append1 ->
+    specification_of_append append2 ->
+    forall reverse1 reverse2 : forall V : Type, list V -> list V,
+      specification_of_reverse reverse1 ->
+      specification_of_reverse reverse2 ->
+      forall (V : Type)
+             (vs : list V),
+        reverse1 V vs = reverse2 V vs.
+#+END_SRC
+** a
+The unit test cover the involution property.
+
+#+ATTR_LATEX: :float nil :options bgcolor=lightlightgray,frame=lines,fontsize=\footnotesize
+#+BEGIN_SRC coq
+  ...
+  (eqb_list nat beq_nat (candidate nat (candidate nat (1 :: 2 :: nil))) (1 :: 2 :: nil)).
+#+END_SRC
+** e
+The proof for this uses the following Eureka lemma (which took me a long time to find, as it wasn't easy to spot):
+
+#+ATTR_LATEX: :float nil :options bgcolor=lightlightgray,frame=lines,fontsize=\footnotesize
+#+BEGIN_SRC coq
+Proposition reverse_is_involutory :
+  forall (V : Type)
+         (vs : list V),
+    reverse_v0 V (reverse_v0 V vs) = vs.
+#+END_SRC
+** g
+Append and reverse commute with each other, though this swaps the order of the lists:
+
+#+ATTR_LATEX: :float nil :options bgcolor=lightlightgray,frame=lines,fontsize=\footnotesize
+#+BEGIN_SRC coq
+Proposition append_and_reverse_commute_with_each_other :
+  forall (V : Type)
+         (v1s v2s : list V),
+    reverse_v0 V (append_v0 V v1s v2s) = append_v0 V (reverse_v0 V v2s) (reverse_v0 V v1s).
+#+END_SRC
+* Exercise 7
+** e
+~foo~ computes ~copy~, while ~bar~ computes ~reverse~. They have the same ~cons_case~, so it seems surprising at first that they specify the same function, but it's obvious in hindsight if we consider the fact that ~list_fold_right~ associates to the right while ~list_fold_left~ associates to the left (it's in the name!).
+
+
+Since copy and reverse both specify a unique function, these definitions are equivalent to the ones in earlier exercises.
+** f
+Either ~list_fold_right~ or ~list_fold_left~ is fine here, since the ~cons_case~ doesn't use the elements at all, but I chose ~list_fold_left~ just because I can. Tail recursion is its own reward.
+** g
+Both works, but I'm choosing ~list_fold_right~ as it allows me to use a simpler ~cons_case~. With ~list_fold_left~, I would have to use ~fun v vs => vs ++ (v :: nil)~, which is not only longer but also less efficient.
+** h
+Same as (g), the only difference in the implementation is the ~nil_case~.
+** i
+This uses ~list_fold_left~, for the same reason I chose ~list_fold_right~ in (g) & (h): with ~list_fold_right~, I would have to use ~fun v vs => vs ++ (v :: nil)~ in the ~cons_case~.
+** k
+Didn't attempt to prove this, but I know by intuition that ~list_fold_right~ and ~list_fold_left~ are equivalent if we reverse the list argument for one or the other.
+
+** n
+The proof uses the following Eureka lemma:
+
+#+ATTR_LATEX: :float nil :options bgcolor=lightlightgray,frame=lines,fontsize=\footnotesize
+#+BEGIN_SRC coq
+Lemma about_the_grand_finale :
+  forall (V W : Type)
+         (cons_case : V -> W -> W),
+    is_left_permutative V W cons_case ->
+    forall (vs : list V)
+           (v : V)
+           (nil_case : W),
+      list_fold_left V W (cons_case v nil_case) cons_case vs =
+      cons_case v (list_fold_left V W nil_case cons_case vs).
+#+END_SRC
+
+This is the hallmark of the midterm project. With this and (p), we now know that folding left and right over lists are equivalent iff the operation is left permutative, whereas folding left and right over Peano numbers are always equivalent as shown in Week 5.
+
+While I didn't attempt (p), I'll note here a lead for why left-permutativity is the sufficient and necessary condition for the equivalence: I suspect left-permutativity \Leftrightarrow associativity \wedge commutativity, both of which make sense for the equivalence.
+** o
+One corollary is ~list_fold_left~ is equivalent to ~list_fold_right~ for ~plus~. Same goes for ~mult~. Yet another is ~fun _ n => S n~, which we used for ~length_v2~.
+
+These corollaries clarify the point of (n), i.e. the idea of folding over lists being a generic function that captures enumeration.
+* Exercise 8
+** a
+Folding over Peano numbers captures repetition, as we have learned in Week 5. The question is then, given a list ~vs~, what kind of "repetition" must we do on ~vs~ so that we get something that can easily be transformed into what we want, i.e. the element at some index ~n~? This "repetition", the ~tail~ function (close enough), becomes the ~cons_case~. From there, it's easy enough to get the element at ~n~.
+
+#+ATTR_LATEX: :float nil :options bgcolor=lightlightgray,frame=lines,fontsize=\footnotesize
+#+BEGIN_SRC coq
+Definition nat_nth' (V : Type) (n : nat) (vs : list V) : option V :=
+  match nat_fold_right (list V) vs (fun vs : list V => match vs with
+                                                       | nil => nil
+                                                       | _ :: vs' => vs'
+                                                       end) n with
+  | nil => None
+  | v :: _ => Some v
+  end.
+#+END_SRC
+
+Again, we know from Week 5 that ~nat_fold_right~ and ~nat_fold_left~ are equivalent, so that's the only change we need to implement ~nat_nth~ using ~nat_fold_left~.
+** b
+Folding over lists, on the other hand, captures enumeration. This time, the question is: given a number ~n~, what must we do at each step as we enumerate through the elements?
+
+Using the fact that the ~n~-th element of ~vs~ is the ~n-1~-th element of the tail of ~vs~, I store two things in the accumulator: the number of elements to go, and an ~option~ that only gets updated when we reach index 0.
+
+#+ATTR_LATEX: :float nil :options bgcolor=lightlightgray,frame=lines,fontsize=\footnotesize
+#+BEGIN_SRC coq
+Definition list_nth'' (V : Type) (vs : list V) (n : nat) : option V :=
+  snd (list_fold_left V (nat * option V) (n, None)
+                      (fun (v : V) (acc : nat * option V) => match acc with
+                                                             | (O, None) => (O, Some v)
+                                                             | (O, Some v') => (O, Some v') 
+                                                             | (S n', _) => (n', None)
+                                                             end)
+                      vs).
+#+END_SRC
+
+For ~list_fold_right~, as discussed in (7.k), we only need to reverse the list argument.
 * Conclusion
+And that wraps up the midterm project. I took my time doing this project, which is not an opportunity I find often in the School of Computing, and already I find a lot of gaps in my knowledge on the seemingly simple idea of folding over lists.
 
-I couldn't finish all of the exercises (stupid mistake, I didn't notice the midterm was up until two days before the deadline), but this has been a pretty good overview of what I've learnt so far, especially for the last three lectures where we've been grinding through exercises to build the muscle memory.
+Obviously I learned about the condition for the equivalence of fold left and fold right over lists, but I also managed to solidify my understanding of fold left vs. fold right, which is exemplified in ~foo~ vs. ~bar~. Knowing the efficiency of fold left, I was also delighted to find, while scouring around in the web, that some fold right implementations use fold left under the hood (!), which is done by reversing the list argument, as discussed in Exercise 7.
+
+My regret is that I wasted a lot of time waiting for the Eureka moment, especially on ~reverse_is_involutory~, which perhaps could be avoided had I spent more time doing the mystery function exercises. Alas, this reveals my rusty Eureka lemma chops, which I suppose means I need to take more baths in a bathtub...

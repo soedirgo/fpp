@@ -5,21 +5,9 @@
 
 (* ********** *)
 
-(* Your name:
-   Your student ID number:
-   Your e-mail address: 
-
-   Your name:
-   Your student ID number:
-   Your e-mail address: 
-
-   Your name:
-   Your student ID number:
-   Your e-mail address: 
-
-   Your name:
-   Your student ID number:
-   Your e-mail address: 
+(* Your name: Bobbie Soedirgo
+   Your student ID number: A0181001A
+   Your e-mail address: sram-b@comp.nus.edu.sg
 *)
 
 (* ********** *)
@@ -50,7 +38,20 @@ Proposition there_is_at_most_one_mystery_function_00 :
     forall n : nat,
       f n = g n.
 Proof.
-Abort.
+  unfold specification_of_mystery_function_00.
+  intros f g [S_f_O S_f_S] [S_g_O S_g_S] n.
+  induction n as [| n' IHn'].
+  - rewrite -> S_g_O.
+    exact S_f_O.
+  - Search (0 + _ = _).
+    rewrite <- (plus_O_n n').
+    rewrite -> (S_f_S 0 n').
+    rewrite -> (S_g_S 0 n').
+    rewrite -> S_f_O.
+    rewrite -> S_g_O.
+    rewrite -> IHn'.
+    reflexivity.
+Qed.
 
 (* ***** *)
 
@@ -210,8 +211,46 @@ Definition specification_of_mystery_function_11 (mf : nat -> nat) :=
   forall i j : nat,
     mf (i + j) = mf i + 2 * i * j + mf j.
 
-Definition mystery_function_11 := fun n : nat => n * n.
+Lemma about_mystery_function_11 :
+  forall f : nat -> nat,
+    specification_of_mystery_function_11 f ->
+    f 0 = 0.
+Proof.
+  unfold specification_of_mystery_function_11.
+  intros f [S_f_1 S_f_S].
+  Check (S_f_S 0 1).
+  assert (H_f := S_f_S 0 1).
+  rewrite -> (plus_O_n 1) in H_f.
+  Search (_ * 0 = 0).
+  rewrite -> (Nat.mul_0_r 2) in H_f.
+  Search (0 * _ = 0).
+  rewrite -> (Nat.mul_0_l 1) in H_f.
+  Search (_ + 0 = _).
+  rewrite -> (Nat.add_0_r (f 0)) in H_f.
+  rewrite -> (Nat.add_comm (f 0) (f 1)) in H_f.
+  rewrite <- (Nat.add_0_r (f 1)) in H_f at 1.
+  Search (_ + _ = _ -> _ = _).
+  Check (plus_reg_l 0 (f 0) (f 1) H_f).
+  symmetry.
+  exact (plus_reg_l 0 (f 0) (f 1) H_f).
+Qed.
 
+Theorem there_is_at_most_one_mystery_function_11 :
+  forall f g : nat -> nat,
+    specification_of_mystery_function_11 f ->
+    specification_of_mystery_function_11 g ->
+    forall n : nat,
+      f n = g n.
+Proof.
+  unfold specification_of_mystery_function_11.
+  intros f g [S_f_O S_f_S] [S_g_O S_g_S] n.
+  induction n as [| n' IHn'].
+  - Check (about_mystery_function_11 g (conj S_g_O S_g_S)).
+    rewrite -> (about_mystery_function_11 g (conj S_g_O S_g_S)).
+    exact (about_mystery_function_11 f (conj S_f_O S_f_S)).
+Abort.
+
+    
 
 (* ********** *)
 
@@ -220,47 +259,6 @@ Definition specification_of_mystery_function_04 (mf : nat -> nat) :=
   /\
   forall n' : nat,
     mf (S n') = mf n' + S (2 * n').
-
-Definition mystery_function_04 := fun n : nat => n * n.
-
-Theorem there_is_at_least_one_mystery_function_04 :
-  specification_of_mystery_function_04 mystery_function_04.
-Proof.
-  unfold specification_of_mystery_function_04, mystery_function_04.
-  split.
-  - simpl.
-    reflexivity.
-  - intro n'.
-    unfold mult.
-    fold mult.
-    rewrite -> (Nat.add_0_r n').
-    rewrite -> (Nat.mul_succ_r n' n').
-    rewrite <- (Nat.add_succ_l n' n').
-    rewrite -> (Nat.add_assoc (S n') (n' * n') n').
-    rewrite -> (Nat.add_assoc (n' * n') (S n') n').
-    rewrite -> (Nat.add_comm (n' * n') (S n')).
-    reflexivity.
-Qed.
-
-Proposition there_is_at_most_one_mystery_function_04 :
-  forall f g : nat -> nat,
-    specification_of_mystery_function_04 f ->
-    specification_of_mystery_function_04 g ->
-    forall n : nat,
-      f n = g n.
-Proof.
-  intros f g.
-  unfold specification_of_mystery_function_04.
-  intros [H_f_O H_f_S] [H_g_O H_g_S].
-  intro n.
-  induction n as [| n' IHn'].
-  - rewrite -> H_g_O.
-    exact H_f_O.
-  - rewrite H_f_S.
-    rewrite H_g_S.
-    rewrite -> IHn'.
-    reflexivity.
-Qed.
 
 (* ********** *)
 
@@ -271,8 +269,6 @@ Definition specification_of_mystery_function_15 (mf : nat -> nat * nat) :=
     mf (S n') = let (x, y) := mf n'
                 in (S x, y * S x).
 
-(* factorial *)
-
 (* ********** *)
 
 Definition specification_of_mystery_function_16 (mf : nat -> nat * nat) :=
@@ -281,8 +277,6 @@ Definition specification_of_mystery_function_16 (mf : nat -> nat * nat) :=
   forall n' : nat,
     mf (S n') = let (x, y) := mf n'
                 in (y, x + y).
-
-(* fibonacci *)
 
 (* ********** *)
 
@@ -296,8 +290,6 @@ Definition specification_of_mystery_function_17 (mf : nat -> nat) :=
   forall p q : nat,
     mf (S (p + q)) = mf (S p) * mf (S q) + mf p * mf q.
 
-(* fibonacci *)
-
 (* ********** *)
 
 Definition specification_of_mystery_function_18 (mf : nat -> nat) :=
@@ -310,8 +302,6 @@ Definition specification_of_mystery_function_18 (mf : nat -> nat) :=
   forall n''' : nat,
     mf n''' + mf (S (S (S n'''))) = 2 * mf (S (S n''')).
 
-(* fibonacci *)
-
 (* ********** *)
 
 Definition specification_of_mystery_function_03 (mf : nat -> nat -> nat) :=
@@ -321,8 +311,6 @@ Definition specification_of_mystery_function_03 (mf : nat -> nat -> nat) :=
   /\
   (forall i j: nat, S (mf i j) = mf i (S j)).
 
-(* add *)
-
 (* ********** *)
 
 Definition specification_of_mystery_function_42 (mf : nat -> nat) :=
@@ -330,8 +318,6 @@ Definition specification_of_mystery_function_42 (mf : nat -> nat) :=
   /\
   forall i j : nat,
     mf (i + j) = mf i + mf j.
-
-(* times 42 *)
 
 (* ********** *)
 
@@ -342,8 +328,6 @@ Definition specification_of_mystery_function_07 (mf : nat -> nat -> nat) :=
   /\
   (forall i j k : nat, mf (i + k) (j + k) = (mf i j) + k).
 
-(* max *)
-
 (* ********** *)
 
 Definition specification_of_mystery_function_08 (mf : nat -> nat -> bool) :=
@@ -352,8 +336,6 @@ Definition specification_of_mystery_function_08 (mf : nat -> nat -> bool) :=
   (forall i : nat, mf (S i) 0 = false)
   /\
   (forall i j : nat, mf (S i) (S j) = mf i j).
-
-(* <= *)
 
 (* ********** *)
 
@@ -365,8 +347,6 @@ Definition specification_of_mystery_function_23 (mf : nat -> nat) :=
   forall n'' : nat,
     mf (S (S n'')) = S (mf n'').
 
-(* floor(x/2) *)
-
 (* ********** *)
 
 Definition specification_of_mystery_function_24 (mf : nat -> nat) :=
@@ -377,16 +357,12 @@ Definition specification_of_mystery_function_24 (mf : nat -> nat) :=
   forall n'' : nat,
     mf (S (S n'')) = S (mf n'').
 
-(* ceil(x/2) *)
-
 (* ********** *)
 
 Definition specification_of_mystery_function_13 (mf : nat -> nat) :=
   (forall q : nat, mf (2 * q) = q)
   /\
   (forall q : nat, mf (S (2 * q)) = q).
-
-(* floor(x/2) *)
 
 (* ********** *)
 
@@ -401,16 +377,12 @@ Definition specification_of_mystery_function_25 (mf : nat -> nat) :=
   (forall q : nat,
       mf (S (2 * (S q))) = S (mf (S q))).
 
-(* floor(x/2) *)
-
 (* ****** *)
 
 Definition specification_of_mystery_function_20 (mf : nat -> nat -> nat) :=
   (forall j : nat, mf O j = j)
   /\
   (forall i j : nat, mf (S i) j = S (mf i j)).
-
-(* add *)
 
 (* ****** *)
 
@@ -419,8 +391,6 @@ Definition specification_of_mystery_function_21 (mf : nat -> nat -> nat) :=
   /\
   (forall i j : nat, mf (S i) j = mf i (S j)).
 
-(* add *)
-
 (* ****** *)
 
 Definition specification_of_mystery_function_22 (mf : nat -> nat -> nat) :=
@@ -428,8 +398,6 @@ Definition specification_of_mystery_function_22 (mf : nat -> nat -> nat) :=
     mf O j = j
     /\
     mf (S i) j = mf i (S j).
-
-(* add *)
 
 (* ********** *)
 

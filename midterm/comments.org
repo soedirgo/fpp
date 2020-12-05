@@ -1,0 +1,297 @@
+* (* Exercise 0: *)
+
+Theorem soundness_of_equality_over_lists :
+Theorem completeness_of_equality_over_lists :
+
+Good.
+
+What about the converse cases, i.e., v1s <> v2s
+and eqb_list V eqb_V v1s v2s = false?
+
+-----
+
+* (* Exercise 1: *)
+
+Fixpoint length_v1_aux (V : Type) (vs : list V) (a : nat) : nat :=
+Definition length_v1 (V : Type) (vs : list V) : nat :=
+Compute (test_length length_v1).
+
+good
+
+-----
+
+Lemma fold_unfold_length_v1_aux_nil :
+Lemma fold_unfold_length_v1_aux_cons :
+
+indentation?
+Are you using emacs?
+otherwise, OK
+
+-----
+
+Lemma about_length_v1_aux :
+Theorem length_v1_satisfies_the_specification_of_length :
+
+good
+
+-----
+
+* (* Exercise 2: *)
+
+Compute (test_nat_nth (fun (V : Type) (n : nat) (vs : list V) => list_nth V vs n)).
+Compute (test_list_nth (fun (V : Type) (vs : list V) (n : nat) => nat_nth V n vs)).
+
+good
+
+-----
+
+Proposition list_nth_implies_nat_nth :
+
+the first proof is overkill: each indexing function is only defined with
+one recursion, so only one induction is necessary
+(also, the 2nd induction proof doesn't use its induction hypothesis,
+so it's just a proof by cases, as evidenced by the 2nd proof)
+
+-----
+
+Proposition nat_nth_implies_list_nth :
+
+OK.
+
+Could these propositions be proved by induction on the other inductive argument?
+(i.e., n for Proposition list_nth_implies_nat_nth
+and vs for Proposition nat_nth_implies_list_nth)
+
+-----
+
+   d. What do you conclude?
+
+   list_nth and nat_nth are equivalent, modulo the order of arguments.
+
+Two points:
+
+- this equivalence is functional equality
+
+- this equivalence could have been stated as a theorem
+
+* Ex 3
+
+Definition test_copy (candidate : forall V : Type, list V -> list V) :=
+
+good
+
+-----
+
+Fixpoint copy_v0 (V : Type) (vs : list V) : list V :=
+Compute (test_copy copy_v0).
+Lemma fold_unfold_copy_v0_nil :
+Lemma fold_unfold_copy_v0_cons :
+
+good
+
+-----
+
+Theorem copy_v0_satisfies_the_specification_of_copy :
+
+the proof misses the point that the fold-unfold lemmas coincide with the clauses of the specification:
+
+Theorem copy_v0_satisfies_the_specification_of_copy :
+  specification_of_copy copy_v0.
+Proof.
+  unfold specification_of_copy.
+  split.
+  - intro V.
+    exact (fold_unfold_copy_v0_nil V).
+  - intros V v vs'.
+    exact (fold_unfold_copy_v0_cons V v vs').
+
+  Restart.
+
+  unfold specification_of_copy.
+  split.
+  - exact fold_unfold_copy_v0_nil.
+  - exact fold_unfold_copy_v0_cons.
+Qed.
+
+-----
+
+Proposition copy_is_idempotent :
+
+OK
+
+-----
+
+Proposition copy_preserves_length :
+
+good
+
+No thoughts about changing the statement to read
+
+  forall (V : Type)
+         (vs : list V)
+         (n : nat),
+    length_v0 V (copy_v0 V vs) = length_v0 V vs.
+
+?
+
+-----
+
+Definition copy_v1 (V : Type) (vs : list V) : list V :=
+Compute (test_copy copy_v1).
+Theorem copy_v1_satisfies_the_specification_of_copy :
+
+Good, but a reflection is missing about copy_v0 providing a copy of the input
+and copy_v1 returning the input---cf. structural equality vs. physical identity.
+
+Also, is does the specification of copy specify a unique function?
+
+-----
+* Ex 4
+
+Definition test_append (candidate : forall V : Type, list V -> list V -> list V) :=
+Fixpoint append_v0 (V : Type) (v1s v2s : list V) : list V :=
+Compute (test_append append_v0).
+Lemma fold_unfold_append_v0_nil :
+Lemma fold_unfold_append_v0_cons :
+
+Good.
+
+-----
+
+
+
+-----
+
+Theorem append_v0_satisfies_the_specification_of_append :
+
+Same observation as above about the fold-unfold lemmas coinciding with the clauses of the specification.
+
+-----
+
+Property nil_is_left_neutral_wrt_append_v0 :
+Property nil_is_right_neutral_wrt_append_v0 :
+
+good
+
+-----
+
+Property append_v0_is_not_commutative :
+
+Right.  So you have proved that it is not commutative for the type nat.
+But what about other types?
+
+Also, the last proof step is too implicit, too close to magic.  It should read:
+
+  unfold not.
+  intro H_absurd.
+  injection H_absurd as H_1_2 H_2_1.
+  discriminate H_1_2.
+
+where you can explain each step.
+
+-----
+
+Property append_v0_is_associative :
+
+OK (note that the Light of Inductil was not needed here (why?))
+
+-----
+
+Proposition append_preserves_length :
+
+good
+
+-----
+
+Proposition append_and_copy_commute_with_each_other :
+
+OK
+
+Note that a lemma to the effect that forall vs, copy_v0 V vs = vs
+would have come handy here and in the proof of Proposition copy_preserves_length.
+
+Or you could have used copy_v1 instead of copy_v0 in the statement of this proposition.
+
+-----
+
+* Ex 5
+Definition test_reverse (candidate : forall V : Type, list V -> list V) :=
+
+good, especially the reverse/reverse, but only one type?
+
+-----
+
+Fixpoint reverse_v0 (V : Type) (v1s : list V) : list V :=
+Compute (test_reverse reverse_v0).
+Lemma fold_unfold_reverse_v0_nil :
+Lemma fold_unfold_reverse_v0_cons :
+
+good
+
+Lemma there_is_at_most_one_append_function :
+
+good, though this lemma could have been relocated earlier in the file
+
+Theorem reverse_v0_satisfies_the_specification_of_reverse :
+
+good
+
+-----
+
+Proposition reverse_is_involutive :
+
+sorry, English, it should have been "involutory"
+
+nothing more for reverse?
+
+-----
+no solution for map
+
+-----
+* Ex 7
+
+Fixpoint list_fold_right (V W : Type) (nil_case : W) (cons_case : V -> W -> W) (vs : list V) : W :=
+Fixpoint list_fold_left (V W : Type) (nil_case : W) (cons_case : V -> W -> W) (vs : list V) : W :=
+Lemma fold_unfold_list_fold_right_nil :
+etc.
+
+good
+
+-----
+
+Theorem list_fold_right_satisfies_the_specification_of_list_fold_right :
+Theorem list_fold_left_satisfies_the_specification_of_list_fold_left :
+
+same comment as above about the nature of the fold-unfold lemmas
+
+-----
+
+Theorem foo_satisfies_the_specification_of_copy :
+
+good
+
+-----
+
+Definition bar (V : Type) (vs : list V) :=
+
+ah, you were to such a good start, why stop?
+
+----------
+
+midterm-project.pdf
+
+-----
+
+The idea of the report is based on Boileau's aphorism
+to the effect that what we understand well, we explain clearly,
+a point that I try to exemplify, witness, e.g.,
+  https://www.yale-nus.edu.sg/newsroom/28-january-2020-yale-nus-professor-teaches-computer-science-to-students-through-the-art-of-narrative-discourse/
+
+But there are no clear explanations here.
+
+----------
+
+Overall, you display excellent use of your spine (reflexes and speed),
+but not enough use of your brain (reflection).
+And the whole project was a buildup inviting you to reflect,
+since fold-right captures recursion and fold-left captures tail-recursion with an accumulator.

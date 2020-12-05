@@ -142,6 +142,27 @@ Qed.
 
 (* ********** *)
 
+Theorem soundness_and_completeness_of_equality_over_natural_numbers_the_remaining_case :
+  forall n1 n2 : nat,
+    n1 =? n2 = false <-> n1 <> n2.
+Proof.
+  intros n1 n2.
+  unfold not.
+  split.
+  - intros H_eqb H_eq.
+    Check (soundness_and_completeness_of_equality_over_natural_numbers n1 n2).
+    destruct (soundness_and_completeness_of_equality_over_natural_numbers n1 n2) as [_ C_eqb_nat].
+    rewrite -> (C_eqb_nat H_eq) in H_eqb.
+    discriminate H_eqb.
+  - intros H_eq.
+    Search (_ <> true -> _ = false).
+    apply (not_true_is_false (n1 =? n2)).
+    unfold not.
+    intro H_eqb.
+    destruct (soundness_and_completeness_of_equality_over_natural_numbers n1 n2) as [C_eqb_nat _].
+    contradiction (H_eq (C_eqb_nat H_eqb)).
+Qed.
+
 Lemma from_one_equivalence_to_two_implications :
   forall (V : Type)
          (eqb_V : V -> V -> bool),
@@ -244,6 +265,9 @@ Proof.
   - exact (soundness_of_equality_over_optional_values V eqb_V S_eqb_V ov1 ov2).
   - exact (completeness_of_equality_over_optional_values V eqb_V C_eqb_V ov1 ov2).
 Qed.
+
+(*** Exercise 7 *)
+(* ... *)
 
 (* ********** *)
 

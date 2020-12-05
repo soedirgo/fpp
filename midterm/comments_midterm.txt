@@ -1,0 +1,474 @@
+Hi Bobbie,
+
+Thanks for your midterm.
+As agreed, you are not penalized for handing it late.
+Also, since you didn't upload an annotated copy of my comments saying how you addressed each of them,
+let me evaluate your midterm from scratch.
+
+----------
+
+midterm-project-1.v
+
+-----
+
+The filename doesn't match the file header.
+
+-----
+
+(* Exercise 0: *)
+
+Theorem soundness_of_equality_over_lists :
+Theorem completeness_of_equality_over_lists :
+Corollary soundness_of_equality_over_lists_the_remaining_case :
+Corollary completeness_of_equality_over_lists_the_remaining_case :
+
+good
+
+-----
+
+(* We bring this from W6 to help *)
+Lemma from_one_equivalence_to_two_implications :
+Corollary soundness_and_completeness_of_equality_over_lists_the_remaining_case :
+
+good
+
+-----
+
+Definition test_length (candidate : forall V : Type, list V -> nat) :=
+Theorem there_is_at_most_one_length_function :
+Fixpoint length_v0_aux (V : Type) (vs : list V) : nat :=
+Definition length_v0 (V : Type) (vs : list V) : nat :=
+Compute (test_length length_v0).
+(* Associated fold-unfold lemmas: *)
+Theorem length_v0_satisfies_the_specification_of_length :
+
+all good
+
+-----
+
+(* Exercise 1: *)
+
+Fixpoint length_v1_aux (V : Type) (vs : list V) (a : nat) : nat :=
+Definition length_v1 (V : Type) (vs : list V) : nat :=
+Compute (test_length length_v1).
+Lemma fold_unfold_length_v1_aux_nil :
+Lemma fold_unfold_length_v1_aux_cons :
+Lemma about_length_v1_aux :
+Theorem length_v1_satisfies_the_specification_of_length :
+
+all good, including the Eureka! comment.
+
+-----
+
+(* Exercise 2: *)
+
+Compute (test_nat_nth (fun (V : Type) (n : nat) (vs : list V) => list_nth V vs n)).
+Compute (test_list_nth (fun (V : Type) (vs : list V) (n : nat) => nat_nth V n vs)).
+
+good
+
+-----
+
+Proposition list_nth_implies_nat_nth :
+
+good and good
+
+-----
+
+Proposition nat_nth_implies_list_nth :
+
+good and good
+
+-----
+
+Corollary list_nth_and_nat_nth_are_equivalent :
+
+good
+
+-----
+
+(* Exercise 3:
+
+Definition test_copy (candidate : forall V : Type, list V -> list V) :=
+Fixpoint copy_v0 (V : Type) (vs : list V) : list V :=
+Compute (test_copy copy_v0).
+Lemma fold_unfold_copy_v0_nil :
+Lemma fold_unfold_copy_v0_cons :
+Theorem copy_v0_satisfies_the_specification_of_copy :
+
+good
+
+-----
+
+Proposition copy_is_idempotent :
+
+good, but the name should be
+
+Proposition copy_v0_is_idempotent :
+
+Here is the general proposition:
+
+Proposition copy_is_idempotent :
+  forall copy : forall V : Type, list V -> list V,
+    specification_of_copy copy ->
+    forall (V : Type)
+           (vs : list V),
+      copy V (copy V vs) = copy V vs.
+
+-----
+
+Here is a simple proposition that would have been useful:
+
+Proposition copy_and_identity_are_functionally_equal :
+  forall copy : forall V : Type, list V -> list V,
+    specification_of_copy copy ->
+    forall (V : Type)
+           (vs : list V),
+      copy V vs = vs.
+
+-----
+
+Proposition copy_preserves_length :
+Definition copy_v1 (V : Type) (vs : list V) : list V :=
+Compute (test_copy copy_v1).
+Theorem copy_v1_satisfies_the_specification_of_copy :
+Theorem there_is_at_most_one_copy_function :
+
+good
+
+-----
+
+(* Exercise 4:
+
+Theorem there_is_at_most_one_append_function :
+Definition test_append (candidate : forall V : Type, list V -> list V -> list V) :=
+Fixpoint append_v0 (V : Type) (v1s v2s : list V) : list V :=
+Compute (test_append append_v0).
+Lemma fold_unfold_append_v0_nil :
+Lemma fold_unfold_append_v0_cons :
+Theorem append_v0_satisfies_the_specification_of_append :
+Property nil_is_left_neutral_wrt_append_v0 :
+Property nil_is_right_neutral_wrt_append_v0 :
+
+all good
+
+-----
+
+Property append_v0_is_not_commutative :
+
+OK, but 2 remarks:
+
+(1) based on Exercise 4 at https://delimited-continuation.github.io/YSC3236/2019-2020_Sem1/week-06_miscellany.html
+    the statement would read more simply as
+
+Property append_v0_is_not_commutative :
+  forall (V : Type)
+         (v1 v2 : V),
+    v1 <> v2 ->
+    exists (v1s v2s : list V),
+      append_v0 V v1s v2s <> append_v0 V v2s v1s.
+
+(2) rather than concluding with
+
+  contradiction (H_eq_V H_absurd).
+
+you could also conclude with
+
+  exact (H_eq_V H_absurd).
+
+-----
+
+Property append_v0_is_associative :
+Proposition append_preserves_length :
+
+good
+
+-----
+
+Proposition append_and_copy_commute_with_each_other :
+
+OK but that's only the shortcut.
+The idea of these exercises is that you exercise your muscles.
+
+-----
+
+(* Exercise 5:
+
+Theorem there_is_at_most_one_reverse_function :
+Definition test_reverse (candidate : forall V : Type, list V -> list V) :=
+Fixpoint reverse_v0 (V : Type) (v1s : list V) : list V :=
+Compute (test_reverse reverse_v0).
+Lemma fold_unfold_reverse_v0_nil :
+Lemma fold_unfold_reverse_v0_cons :
+Theorem reverse_v0_satisfies_the_specification_of_reverse :
+Lemma about_reverse_v0 :
+Proposition reverse_is_involutory :
+Proposition reverse_preserves_length :
+Proposition append_and_reverse_commute_with_each_other :
+
+all good
+
+-----
+
+Fixpoint reverse_v1_aux (V : Type) (vs : list V) (acc : list V) : list V :=
+Lemma fold_unfold_reverse_v1_aux_nil :
+Lemma fold_unfold_reverse_v1_aux_cons :
+Definition reverse_v1 (V : Type) (vs : list V) : list V :=
+Lemma about_reverse_v1_aux :
+Theorem reverse_v1_satisfies_the_specification_of_reverse :
+
+all good, especially because you reasoned about reverse_v1 independently of reverse_v0
+
+-----
+
+(* Exercise 7:
+
+Fixpoint list_fold_right (V W : Type) (nil_case : W) (cons_case : V -> W -> W) (vs : list V) : W :=
+Fixpoint list_fold_left (V W : Type) (nil_case : W) (cons_case : V -> W -> W) (vs : list V) : W :=
+Lemma fold_unfold_list_fold_right_nil :
+Lemma fold_unfold_list_fold_right_cons :
+Lemma fold_unfold_list_fold_left_nil :
+Lemma fold_unfold_list_fold_left_cons :
+Theorem list_fold_right_satisfies_the_specification_of_list_fold_right :
+Theorem list_fold_left_satisfies_the_specification_of_list_fold_left :
+
+all good
+
+-----
+
+Theorem foo_satisfies_the_specification_of_copy :
+
+good
+
+-----
+
+Lemma about_bar :
+Theorem bar_satisfies_the_specification_of_reverse :
+
+good
+
+-----
+
+Definition length_v2 (V : Type) (vs : list V) : nat :=
+  list_fold_left V nat O (fun _ n => S n) vs.
+
+Compute (test_length length_v2).
+
+Definition copy_v2 (V : Type) (vs : list V) : list V :=
+  list_fold_right V (list V) nil (fun v vs => (v :: vs)) vs.
+
+Compute (test_copy copy_v2).
+
+Definition append_v1 (V : Type) (v1s v2s : list V) : list V :=
+  list_fold_right V (list V) v2s (fun v vs => (v :: vs)) v1s.
+
+Compute (test_append append_v1).
+
+Definition reverse_v2 (V : Type) (vs : list V) : list V :=
+  list_fold_left V (list V) nil (fun v vs => (v :: vs)) vs.
+
+Compute (test_reverse reverse_v2).
+
+Ouch:
+
+* you are only testing, not proving
+
+* the definition of foo and copy_v2 textually coincide
+
+* the definition of bar and reverse_v2 textually coincide
+
+-----
+
+Lemma about_the_grand_finale :
+Theorem the_grand_finale :
+
+good
+
+-----
+
+Corollary example_for_mult :
+
+OK, but so what?
+
+-----
+
+Mindfulness is everything:
+
+* you have defined length both recursively (length_v0) and tail-recursively with an accumulator (length_v1);
+
+* therefore length_v0 can be expressed with list_fold_right (not done) and with list_fold_left (length_v2);
+
+* the arguments of list_fold_right and of list_fold_left are the same, so the_grand_finale should apply;
+
+* the_grand_finale applies because the 2nd argument of list_fold_right and list_fold_left is left-permutative.
+
+It's not that you don't know this since you mention it in the report (Exercise 7 f, page 8),
+and it's not that you don't know it either since you fleetingly mention it in the report (Exercise 7 o, page 9).
+You need to do more justice to what you have done: go to the end of your thoughts,
+and describe your analysis and your conclusions in the report.
+
+-----
+
+Theorem the_grand_finale_converse :
+
+Pity you didn't give it a shot: the proof is surprisingly simple.
+
+-----
+
+(* Exercise 8: *)
+
+Compute (test_nat_nth nat_nth').
+Compute (test_nat_nth nat_nth'').
+
+Whimper.
+We have seen that nat_fold_left and nat_fold_right are functionally equal,
+and you say it in the report (Exercice 7 n, top of page 9).
+You are in position to connect the dots properly, i.e., with a Coq theorem
+and its proof, not only with the informal statement in English in the report (Exercise 8 a).
+
+-----
+
+Definition list_nth' (V : Type) (vs : list V) (n : nat) : option V :=
+Definition list_nth'' (V : Type) (vs : list V) (n : nat) : option V :=
+
+That's not the point.
+The point was
+
+* to implement list_nth using list_fold_right and verify (i.e., both test and prove) that the implementation is correct
+
+* to replace list_fold_right by list_fold_left, to observe that the result indexes the list from right to left instead of from left to right, and to analyze this property
+
+-----
+
+Overall what you have in this .v file is solid but on the minimalistic side:
+you should take the time to reflect on what you have done and on its significance.
+
+----------
+
+midterm-project-1.pdf
+
+-----
+
+front page
+
+OK but be mindful of line breaks, they are such an effective subliminal way
+to give a good impression.  Reference: Slides 3 to 9 at
+  http://users-cs.au.dk/danvy/communication/cics_2015-08-31.pdf
+
+-----
+
+Introduction
+
+What is here is too local in time: should you ever read this report again,
+this introduction will be completely useless.
+Why?
+Because it talks about the messenger (and how the messenger felt when he wrote this introduction) instead of about the message.
+
+The introduction of a midterm / term report is a way to convey where you currently stand in your intellectual landscape.
+What is FPP?
+What is its goal?
+What have you learned?
+Where does this midterm project stand in?
+What is the point of this midterm project?
+How is the rest of the report organized?
+
+And then, for each exercise, add a subsection "Introduction"
+where you explain the exercise ***so that your report becomes a stand-alone reading unit***
+and a subsection "Summary and conclusion" to recapitulate what you have done
+and to reflect about how you did it.
+Forcing yourself to go through this will structure your mind in a positive and lasting way, well beyond FPP.
+
+The measure of success of the general introduction is that it situates the project:
+it presents its domain of discourse, and it introduces the vocabulary of its language of discourse.
+
+-----
+
+The narrative in Exercises 0, 1, etc. is similarly inexistent:
+what is here is a commented listing formatted in LaTeX.
+
+-----
+
+Exercise 2, b & c:
+
+"but note that it’s possible do prove by induction on either vs or n."
+
+And what is the significance of that?
+
+-----
+
+Exercise 2, d:
+
+You are just talking to yourself here.  What is "primitive equality"?
+
+-----
+
+Exercise 3, g:
+
+"the difference between structural vs. physical identity of inductive types"
+
+This narrative is imprecise:
+
+* we are talking about equality here: structural (same structure) or physical (same place in memory)
+
+* we are talking about equality of values (that have a type)
+
+-----
+
+Exerice 7, n
+
+"a generic function that captures enumeration"
+
+What does this mean?
+
+-----
+
+Conclusion
+
+The reference to Archimedes is cute, but the narrative is way, way too self-conscious:
+10 occurrences of "I" and 5 occurrences of "my" in 6 sentences.
+
+----------
+
+Overall, this handin is contradictory: one the one hand, there is a pretty solid .v file
+for what obviously needs to be done, and on the other hand, there is very little connection
+between the dots and very little reflection on what you have done and its global significance.
+The report is not at all in archival form: later on, if you need a refresher on lists,
+you will find it content-free, and you will be back at perusing the web,
+a tell-tale sign that you don't own your knowledge.
+
+The last bit in the take-home Chinese food for thought at
+  https://delimited-continuation.github.io/YSC1212/2018-2019_Sem2/week-13_Chinese-food-for-thought.html
+applies here: the measure of our understanding is the clarity of our discourse.
+
+The term project gives you a chance to write an archival document
+for you in the future where you say what's what about source interpreters,
+compilers, and target interpreters, the way the midterm project
+tried to give you a chance to write an archival document
+for you in the future where you say what's what about polymorphic lists
+and how to process them.
+
+Some concrete suggestions:
+
+* label your sections, and add
+
+    \setcounter{section}{-1}
+
+  before the introduction so that the introduction is Section 0,
+  and for each i, Task i is described in Section i
+
+* add subsections, minimally an introduction and a "summary and conclusion" in each subsection:
+  this will force you to spell out what is significant in each task (in the introduction)
+  and in how you have carried out each task (in the summary and conclusion)
+
+* write the general introduction and the general conclusion last, when you know what you need to introduce and what there is to conclude
+
+* define technical terms before using them
+
+* connect the dots
+
+
+I'll be happy to offer you feedback on a preliminary version of your term project.
+
+Thanks for playing along,
+
+\Olivier

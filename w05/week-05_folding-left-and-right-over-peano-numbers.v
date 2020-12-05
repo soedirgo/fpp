@@ -5,21 +5,9 @@
 
 (* ********** *)
 
-(* Your name:
-   Your student ID number:
-   Your e-mail address: 
-
-   Your name:
-   Your student ID number:
-   Your e-mail address: 
-
-   Your name:
-   Your student ID number:
-   Your e-mail address: 
-
-   Your name:
-   Your student ID number:
-   Your e-mail address: 
+(* Your name: Bobbie Soedirgo
+   Your student ID number: A0181001A
+   Your e-mail address: sram-b@comp.nus.edu.sg
 *)
 
 (* ********** *)
@@ -355,6 +343,8 @@ Qed.
 
 (* ********** *)
 
+(*** Exercise 1 *)
+
 Fixpoint add_v0 (i j : nat) : nat :=
   match i with
     | O => j
@@ -454,6 +444,8 @@ Proof.
 Qed.
 
 (* ********** *)
+
+(*** Exercise 2 *)
 
 Fixpoint mul_v0_aux (i j : nat) : nat :=
   match i with
@@ -575,7 +567,7 @@ Qed.
 
 (* ********** *)
 
-(* Exercise 3 *)
+(*** Exercise 3 *)
 
 Fixpoint odd_v0_aux (n : nat) (a : bool) : bool :=
   match n with

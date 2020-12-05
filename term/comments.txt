@@ -1,0 +1,177 @@
+Hi Bobbie,
+
+Thanks for the update.
+
+-----
+
+> Some questions:
+> 
+> - Are we supposed to be using evaluate_cps?
+>   I’m guessing no, but I implemented mine in direct style anyway.
+
+No you are not.
+A direct-style version is what is expected.
+
+
+> - Is the_commutative_diagram only referring to the implementation, rather than any function that satisfies the specifications?
+>   I get the nagging feeling I’ll hit a roadblock if I try to make it more general.
+
+The two are equivalent since the implementations satisfy the specifications
+and since the specifications are neither vacuous nor ambiguous.
+That said it is simpler to proceed with the implementations.
+(See "(* TAG *)" and "(* TAG TAG *)" below.)
+
+-----
+
+Fixpoint evaluate_v0 (ae : arithmetic_expression) : expressible_value :=
+Lemma fold_unfold_evaluate_v0_Literal :
+etc.
+Theorem evaluate_v0_satisfies_the_specification_of_evaluate :
+Definition interpret_v0 (sp : source_program) : expressible_value :=
+
+good
+
+-----
+
+Lemma about_evaluate_v0 :
+
+I didn't expect this, but OK.
+
+-----
+
+Theorem interpret_v0_satisfies_the_specification_of_interpret :
+
+Ah, I see.  That's too complicated.
+Here is what we did in the course of the semester:
+
+Theorem interpret_v0_satisfies_the_specification_of_interpret :
+  specification_of_interpret interpret_v0.
+Proof.
+  unfold specification_of_interpret, interpret_v0.
+  intros evaluate' S_evaluate' ae.
+  Check (there_is_at_most_one_evaluate_function evaluate_v0 evaluate' evaluate_v0_satisfies_the_specification_of_evaluate S_evaluate' ae).
+  exact (there_is_at_most_one_evaluate_function evaluate_v0 evaluate' evaluate_v0_satisfies_the_specification_of_evaluate S_evaluate' ae).
+Qed.
+
+-----
+
+Definition decode_execute_v0 (bcis : byte_code_instruction) (ds : data_stack) : result_of_decoding_and_execution :=
+
+OK
+
+-----
+
+Theorem decode_execute_v0_satisfies_the_specification_of_decode_execute :
+
+Nice proof by cases; time permitting, can you also write a more compact version,
+using what we learned in the chapter about isometries?
+
+-----
+
+Fixpoint fetch_decode_execute_loop_v0 (bcis : list byte_code_instruction) (ds : data_stack) : result_of_decoding_and_execution :=
+Lemma fold_unfold_fetch_decode_execute_loop_v0_nil :
+etc.
+Theorem fetch_decode_execute_loop_v0_satisfies_the_specification_of_fetch_decode_execute_loop :
+
+good
+
+-----
+
+(* TAG *)
+
+Proposition fetch_decode_execute_loop_and_append_commutes :
+  forall (fetch_decode_execute_loop : list byte_code_instruction -> data_stack -> result_of_decoding_and_execution),
+    specification_of_fetch_decode_execute_loop fetch_decode_execute_loop ->
+    forall (bcis1 bcis2 : list byte_code_instruction)
+      (ds1 ds2 : data_stack),
+      fetch_decode_execute_loop bcis1 ds1 = OK ds2 ->
+      fetch_decode_execute_loop (bcis1 ++ bcis2) ds1 =
+      fetch_decode_execute_loop bcis2 ds2.
+
+Simpler:
+
+Proposition fetch_decode_execute_loop_v0_and_append_commute :
+  forall (bcis1 bcis2 : list byte_code_instruction)
+         (ds1 : data_stack),
+    (forall (ds2 : data_stack),
+       fetch_decode_execute_loop_v0 bcis1 ds1 = OK ds2 ->
+       fetch_decode_execute_loop_v0 (bcis1 ++ bcis2) ds1 = fetch_decode_execute_loop_v0 bcis2 ds2)
+    /\
+    (forall (s : string),
+       fetch_decode_execute_loop_v0 bcis1 ds1 = KO s ->
+       fetch_decode_execute_loop_v0 (bcis1 ++ bcis2) ds1 = KO s).
+
+-----
+
+Definition run_v0 (tp : target_program) : expressible_value :=
+
+OK
+
+-----
+
+Fixpoint compile_v0_aux (ae : arithmetic_expression) : list byte_code_instruction :=
+
+OK
+
+-----
+
+Definition compile_v0 (sp : source_program) : target_program :=
+
+OK
+
+-----
+
+Fixpoint compile_v1_aux_aux (ae : arithmetic_expression) (bcis : list byte_code_instruction) : list byte_code_instruction :=
+Lemma fold_unfold_compile_v1_aux_aux_Literal :
+etc.
+Definition compile_v1_aux (ae : arithmetic_expression) : list byte_code_instruction :=
+
+OK
+
+-----
+
+Theorem compile_v1_aux_satisfies_the_specification_of_compile_aux :
+
+You will need a eureka lemma that quantifies on the accumulator.
+
+-----
+
+Definition compile_v1 (sp : source_program) : target_program :=
+
+OK
+
+-----
+
+(* TAG TAG *)
+
+Theorem the_commutative_diagram :
+
+Simpler:
+
+Theorem the_commutative_diagram :
+  forall (sp : source_program),
+    interpret_v0 sp = run_v0 (compile_v0 sp).
+
+-----
+
+You still have a way to go.
+
+I have time constraints too, as the final grades need to be uploaded on Monday and it takes time to properly look at a term report (one hour per report, 17 term reports).
+But hey, that's only urgent: the important is that you do well.
+So why don't you take a bit more time, but then, in turn, do me a favor:
+
+* complete everything by Saturday not too late
+
+* have a huge night of sleep
+
+* read afresh your report, from end to end, on Sunday morning, taking notes on the side
+
+* integrate your notes in the report (no new coding)
+
+* upload the report by noon (ish)
+
+Do we have a deal?
+
+Happy working,
+
+\Olivier

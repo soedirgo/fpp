@@ -1,6 +1,10 @@
 (* week-06_induction-and-induction-proofs-a-recapitulation.v *)
 (* FPP 2020 - YSC3236 2020-2011, Sem1 *)
 (* Olivier Danvy <danvy@yale-nus.edu.sg> *)
+(* Version of 23 Oct 2020, with the bit about isomorphisms *)
+(* was: *)
+(* Version of 22 Oct 2020, with Booleans *)
+(* was: *)
 (* Version of 22 Sep 2020 *)
 
 (* ********** *)
@@ -10,6 +14,43 @@
 Ltac fold_unfold_tactic name := intros; unfold name; fold name; reflexivity.
 
 Require Import Arith Bool.
+
+(* ********** *)
+
+Inductive bool' : Type :=
+| true' : bool'
+| false' : bool'.
+
+(*
+bool' is defined
+bool'_rect is defined
+bool'_ind is defined
+bool'_rec is defined
+*)
+
+Check bool'_ind.
+(* : forall P : bool' -> Prop, P true' -> P false' -> forall b : bool', P b *)
+
+Proposition bool'_identity :
+  forall b : bool',
+    b = b.
+Proof.
+  intro b.
+  reflexivity.
+
+  Restart.
+
+  intro b.
+  case b as [ | ] eqn:H_b.
+  - reflexivity.
+  - reflexivity.
+
+  Restart.
+
+  intros [ | ].
+  - reflexivity.
+  - reflexivity.
+Qed.
 
 (* ********** *)
 
@@ -410,6 +451,38 @@ Corollary list_identity_revisited :
 Proof.
   intro V.
   exact (identity (list V)).
+Qed.
+
+(* ********** *)
+
+Definition bool_to_bool' (b : bool) : bool' :=
+  match b with
+  | true =>
+    true'
+  | false =>
+    false'
+  end.
+
+Definition bool'_to_bool (b : bool') : bool :=
+  match b with
+  | true' =>
+    true
+  | false' =>
+    false
+  end.
+
+Proposition bool'_to_bool_is_a_left_inverse_of_bool_to_bool' :
+  forall b : bool,
+    bool'_to_bool (bool_to_bool' b) = b.
+Proof.
+  intros [ | ]; reflexivity.
+Qed.
+
+Proposition bool_to_bool'_is_a_left_inverse_of_bool'_to_bool :
+  forall b' : bool',
+    bool_to_bool' (bool'_to_bool b') = b'.
+Proof.
+  intros [ | ]; reflexivity.
 Qed.
 
 (* ********** *)
