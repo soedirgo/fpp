@@ -1,0 +1,141 @@
+#+LATEX_CLASS_OPTIONS: [a4paper,report,hidelinks]
+#+LATEX_HEADER: \usepackage{xcolor}
+#+LATEX_HEADER: \colorlet{lightlightgray}{gray!10}
+#+OPTIONS: title:nil toc:nil date:t
+#+LATEX_HEADER: \setcounter{section}{-1}
+#+TITLE: YSC3236: Functional Programming and Proving (AY20/21 S1) @@latex:\\@@ Term Project
+#+AUTHOR: Bobbie Soedirgo @@latex:\\@@ A0181001A
+
+#+BEGIN_EXPORT latex
+\maketitle
+\newpage
+
+\tableofcontents
+\newpage
+#+END_EXPORT
+
+* Introduction
+In the old days, programming means learning the language (assembly) of a particular machine, and if you had to program for a different machine, you had to learn a new one. But higher-level languages (like C) changed everything: instead of writing in assembly, you would be writing in a machine-independent language, and there would be some "glue" that turns your program into the language of that machine. This "glue" is the compiler.
+
+This isn't the only "glue" we can use, however. If we look at the present, we have languages like Python that runs line-by-line, on the fly. We also have languages like Java where we first compile the source program into an intermediate format called "bytecode", and then running that program "just-in-time" in a "virtual machine".
+
+The following image gives a more detailed overview of how we can take a source program and turn it into something the machine can run.
+
+#+CAPTION: Overview of compilation (Source: https://craftinginterpreters.com/a-map-of-the-territory.html)
+[[./mountain.png]]
+
+We started this course with the premise that we can approach running a program in two ways--directly using an interpreter, or with an intermediate compilation step, and then running the resulting bytecode in a VM--and be able to prove that they will give the same result, whether it be a resulting value or an error. This term project is an attempt to do just that.
+
+Throughout the term project, we encounter 6 specifications. For each of them, we assume the specification is sound, i.e. there is at most one function satisfying the specification (which they are, but we didn't manage to prove them in time), and we implement said function.
+
+At the end of the project, we will have proven that, given the specifications for the language of the source program, the following diagram commutes.
+
+#+CAPTION: The diagram (Source: https://delimited-continuation.github.io/YSC1212/2018-2019_Sem2/term-project_about-three-language-processors-for-arithmetic-expressions.html)
+[[./commute.png]]
+* The Interpreter
+** Introduction
+Our source language deals with simple arithmetic:
+
+#+ATTR_LATEX: :float nil :options bgcolor=lightlightgray,frame=lines,fontsize=\footnotesize
+#+BEGIN_SRC coq
+Inductive arithmetic_expression : Type :=
+| Literal : nat -> arithmetic_expression
+| Plus : arithmetic_expression -> arithmetic_expression -> arithmetic_expression
+| Minus : arithmetic_expression -> arithmetic_expression -> arithmetic_expression.
+#+END_SRC
+
+Errors arise from subtracting a number with a greater one, and everything else results in a number. This is all laid out in ~specification_of_evaluate~, which we implement in ~evaluate_v0~.
+
+Then we use this function to implement ~interpret_v0~, which satisfies ~specification_of_interpret~. This takes a ~source_program~ and returns an ~expressible_value~, i.e. either a value or an error, and will be the basis for proving the capstone of the project: that the diagram commutes.
+** Summary and conclusion
+The implementations and proofs are straightforward, but note how the proof that ~interpret_v0~ satisfies the specification on interpret hinges on the soundness of ~specification_of_evaluate~:
+
+#+ATTR_LATEX: :float nil :options bgcolor=lightlightgray,frame=lines,fontsize=\footnotesize
+#+BEGIN_SRC coq
+Theorem interpret_v0_satisfies_the_specification_of_interpret :
+  specification_of_interpret interpret_v0.
+Proof.
+  unfold specification_of_interpret, interpret_v0.
+  intros evaluate S_evaluate ae.
+  exact (there_is_at_most_one_evaluate_function evaluate_v0 evaluate
+        evaluate_v0_satisfies_the_specification_of_evaluate S_evaluate ae).
+  
+Qed.
+#+END_SRC
+
+This is a pattern that we will see in other places: ~fetch_decode_execute_loop~, ~run~, etc. When dealing with theorems that rely on functions satisfying another specification, we only have the propositions laid out in the specification to go by. This is problematic when the specification is ambiguous, e.g. if our language deals with division, how do we deal with division by zero? Coq simplifies this by giving the result 0, but we can see why this is a problem: we can't assume all functions satisfying the specification will return the same result as the function the implemented, therefore the proof might not go through.
+
+But this is not a problem when said specification is sound--we can then rewrite the function with the function we implemented (in this case, ~evaluate_v0~), and the proof should be smooth-sailing afterwards.
+* The Virtual Machine
+** Introduction
+Now we move on to the virtual machine, where we take a target program in the form of bytecode, and execute them into an ~expressible_value~.
+
+#+ATTR_LATEX: :float nil :options bgcolor=lightlightgray,frame=lines,fontsize=\footnotesize
+#+BEGIN_SRC coq
+Inductive byte_code_instruction : Type :=
+| PUSH : nat -> byte_code_instruction
+| ADD : byte_code_instruction
+| SUB : byte_code_instruction.
+
+Inductive target_program : Type :=
+| Target_program : list byte_code_instruction -> target_program.
+
+Definition specification_of_run (run : target_program -> expressible_value) :=
+  ...
+#+END_SRC
+
+In this section, we encounter 3 specifications: ~decode_execute~, ~fetch_decode_execute_loop~, and ~run~. Executing the bytecode is done instruction-by-instruction, and this is done by ~decode_execute~. We also make use of a ~data_stack~ to push results and pop arguments to addition and subtraction. The whole VM routine is captured by ~run~, which simply runs ~fetch_decode_execute_loop~ with an initial ~data_stack~ of ~nil~. 
+
+Note that we also have new error messages here, which correlate to the state of the stack after executing ~fetch_decode_execute_loop~. This fact will be important when we prove that the diagram commutes.
+** Aside: concatenating bytecode
+Our implementation for ~fetch_decode_execute_loop~ runs the bytecode instructions ~bcis~, which transforms the stack ~ds~. But we can run another batch of instructions using the resulting ~ds~ as the initial stack. We prove that this is equivalent to concatenating both lists of instructions and running ~fetch_decode_execute_loop~ with the concatenated list and ~ds~.
+
+This is an interesting property on its own, but this will be essential in proving that the diagram commutes in the last section.
+** Summary and conclusion
+Proving that the implementations satisfy their corresponding specification is rather straightforward. In the proof for ~decode_execute_v0~, we use the ~;~ infix operator we learning in the lecture about isometries. In the proof for ~fetch_decode_execute_loop_v0~, we proof by induction on the list of bytecode instructions ~bcis~, and proof by cases on the result of ~decode_execute~ in the induction case. The proof for ~run~ is done by cases on the result of ~fetch_decode_execute_loop~.
+
+The proof about concatenating bytecode is more interesting, as we had to proof by induction on ~bcis1~, and then by cases on the result of ~fdel~, and then by cases on the head of ~bcis1~, and then by cases on ~n1~ and ~n2~. It's convoluted, but there's no new insight to speak of.
+* The Compiler
+** Introduction
+In the last section we've seen how a target program gets run using the VM. Here we discuss the first half: taking a source program and turning it into a corresponding target program.
+
+Here we encounter 2 specifications: one for the auxiliary function ~compile_aux~, and another for ~compile~. We prove that our implementations, ~compile_v0_aux~ and ~compile_v0~, satisfy their corresponding specification.
+** Aside: an alternative compiler
+Note that the target program is just a list of ~byte_code_instruction~. If there's one thing we learned in the lecture about accumulators, it's that we can turn an implementation in direct style into an equivalent tail-recursive function using an accumulator. Here we're doing just that, with ~compile_v1~ being the tail-recursive version of ~compile_v0~.
+** Summary and conclusion
+Proving that ~compile_v0_aux~ satisfies the specification of ~compile_aux~ is very simple, as all the cases coincide with the specification. Not so with ~compile_v1~, where we needed to use a Eureka lemma concerning the accumulator. This is analogous to the Eureka lemma used on the accumulator of the ~power~ function we encountered earlier in the course.
+* The Commutative Diagram
+** Introduction
+At last, we come to the grand finale, i.e. proving that the diagram commutes. The theorem uses the implementations we've made so far, and states that interpreting a source program ~sp~ directly is equivalent to compiling and running the resulting target program:
+
+#+ATTR_LATEX: :float nil :options bgcolor=lightlightgray,frame=lines,fontsize=\footnotesize
+#+BEGIN_SRC coq
+Theorem the_commutative_diagram :
+  forall (sp : source_program),
+    interpret_v0 sp = run_v0 (compile_v0 sp).
+#+END_SRC
+** Summary and conclusion
+As mentioned in the section about the VM, we run into trouble when directly proceeding with the proof: ~run_v0~ may result in an error message that doesn't occur in ~interpret_v0~, and we need a way to let Coq know that these error message cannot occur in our case, i.e. ~run_v0 (compile_v0 sp)~. Therefore, we used a Eureka lemma that states the following:
+
+#+ATTR_LATEX: :float nil :options bgcolor=lightlightgray,frame=lines,fontsize=\footnotesize
+#+BEGIN_SRC coq
+Lemma about_the_commutative_diagram :
+  forall ae : arithmetic_expression,
+    (forall n : nat,
+        evaluate_v0 ae = Expressible_nat n ->
+        forall ds : data_stack,
+          fetch_decode_execute_loop_v0 (compile_v0_aux ae) ds = OK (n :: ds))
+    /\
+    (forall s : string,
+        evaluate_v0 ae = Expressible_msg s ->
+        forall ds : data_stack,
+          fetch_decode_execute_loop_v0 (compile_v0_aux ae) ds = KO s).
+#+END_SRC
+
+This states that for all ~ae~, ~run_v0~ will only result in ~OK (n :: ds)~ or ~KO s~ depending on the value of ~evaluate_v0 ae~, which is reflected in the proof by cases in ~the_commutative_diagram~.
+
+As for the Eureka lemma, the proof is done by induction on ~ae~, and then by cases on ~evaluate_v0 ae1~ and ~evaluate_v0 ae2~ for ~Plus~ and ~Minus~ (this wasn't obvious, and took a while to come up with). The rest of the proof is straightforward (if convoluted), using the theorem about concatenating bytecode that we discussed in the section about the VM.
+* Conclusion
+This project has been an enlightening experience, if not for the fact that formally proving statements about such a simple source language can be very difficult. But it's also enlightening that it's even *possible*, because this isn't something usually taught in compiler courses (and definitely not the one that I took).
+
+This also made me appreciate formal verification a lot more. While this topic isn't brought up a lot in the industry, there was one that I saw recently, on the use of Isabelle/HOL for formal verification of the seL4 operating system. I still think that this area is still in its infancy, but it's exciting to imagine a future where much of the systems we use today, especially safety-critical infrastructures, are formally verified.
